@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
 
 	"github.com/labstack/echo/v4"
@@ -33,7 +34,11 @@ type LoginRequest struct {
 func (h *AuthHandler) Register(c echo.Context) error {
 	var req RegisterRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse("invalid request"))
+	}
+
+	if req.Email == "" || req.Password == "" || req.Name == "" {
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse("email, password, and name are required"))
 	}
 
 	user, err := h.Service.Register(
@@ -49,29 +54,31 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusCreated, map[string]interface{}{
-		"message": "user registered successfully",
-		"api_key": user.APIToken,
-	})
+	return c.JSON(http.StatusCreated, models.SuccessResponse(
+		"user registered successfully",
+		map[string]string{
+			"api_key": user.APIToken,
+		},
+	))
+
 }
 
 func (h *AuthHandler) Login(c echo.Context) error {
 	var req LoginRequest
 
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "invalid request",
-		})
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse("invalid request"))
 	}
 
 	token, err := h.Service.Login(req.Email, req.Password)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "invalid credentials",
-		})
+		return c.JSON(http.StatusUnauthorized, models.ErrorResponse("invalid credentials"))
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{
-		"token": token,
-	})
+	return c.JSON(http.StatusOK, models.SuccessResponse(
+		"login successful",
+		map[string]string{
+			"token": token,
+		},
+	))
 }
