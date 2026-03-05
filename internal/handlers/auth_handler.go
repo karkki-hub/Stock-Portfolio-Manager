@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"regexp"
 
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
@@ -39,6 +40,14 @@ func (h *AuthHandler) Register(c echo.Context) error {
 
 	if req.Email == "" || req.Password == "" || req.Name == "" {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse("email, password, and name are required"))
+	}
+
+	if !isValidEmail(req.Email) {
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse("invalid email format"))
+	}
+
+	if len(req.Phone) != 10 {
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse("phone number must be 10 digits"))
 	}
 
 	user, err := h.Service.Register(
@@ -81,4 +90,10 @@ func (h *AuthHandler) Login(c echo.Context) error {
 			"token": token,
 		},
 	))
+}
+
+func isValidEmail(email string) bool {
+	emailRegex := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
+	re := regexp.MustCompile(emailRegex)
+	return re.MatchString(email)
 }
