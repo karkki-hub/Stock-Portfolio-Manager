@@ -7,12 +7,10 @@ import (
 
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/repository"
-	utilitis "karkki-hub/Stock-Portfolio-Manager/internal/utilities"
+	utilities "karkki-hub/Stock-Portfolio-Manager/internal/utilities"
 
 	"github.com/golang-jwt/jwt/v5"
 )
-
-var jwtSecret = []byte("your-secret-key")
 
 type AuthService struct {
 	UserRepo  *repository.UserRepository
@@ -33,7 +31,7 @@ func (s *AuthService) Register(name, email, phone, address, password, apiKey str
 		return nil, errors.New("email already registered")
 	}
 
-	hashedPassword, err := utilitis.HashPassword(password)
+	hashedPassword, err := utilities.HashPassword(password)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +61,7 @@ func (s *AuthService) Login(email, password string) (string, error) {
 		return "", errors.New("invalid credentials")
 	}
 
-	err = utilitis.CheckPasswordHash(password, user.Password)
+	err = utilities.CheckPasswordHash(password, user.Password)
 	if err != nil {
 		fmt.Println("Login failed: password mismatch for email:", email)
 		return "", errors.New("invalid credentials")
