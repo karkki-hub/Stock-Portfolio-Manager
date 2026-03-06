@@ -66,7 +66,8 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	return c.JSON(http.StatusCreated, models.SuccessResponse(
 		"user registered successfully",
 		map[string]string{
-			"api_key": user.APIToken,
+			"name":  user.Name,
+			"email": user.Email,
 		},
 	))
 
