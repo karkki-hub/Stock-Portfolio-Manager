@@ -25,7 +25,13 @@ func main() {
 
 	authHandler := handlers.NewAuthHandler(authService)
 
-	routes.RegisterRoutes(e, authHandler, cfg.JWTSecret)
+	stockRepo := repository.NewStockRepository(db)
+
+	stockService := services.NewStockService(stockRepo, cfg.AlphaKey)
+
+	stockHandler := handlers.NewStockHandler(stockService)
+
+	routes.RegisterRoutes(e, authHandler, cfg.JWTSecret, stockHandler)
 
 	e.Logger.Fatal(e.Start(":" + cfg.AppPort))
 }

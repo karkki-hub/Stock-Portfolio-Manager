@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func RegisterRoutes(e *echo.Echo, authHandler *handlers.AuthHandler, jwtSecret string,
+func RegisterRoutes(e *echo.Echo, authHandler *handlers.AuthHandler, jwtSecret string, stockHandler *handlers.StockHandler,
 ) {
 
 	e.POST("/register", authHandler.Register)
@@ -20,5 +20,7 @@ func RegisterRoutes(e *echo.Echo, authHandler *handlers.AuthHandler, jwtSecret s
 	api.GET("/test", func(c echo.Context) error {
 		return c.JSON(200, map[string]string{"message": "JWT auth successful"})
 	})
+
+	api.GET("/stocks/:symbol", stockHandler.SearchStock)
 
 }
