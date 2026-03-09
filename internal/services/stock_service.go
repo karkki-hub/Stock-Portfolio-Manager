@@ -57,7 +57,7 @@ func (s *StockService) SearchStock(symbol string) (*models.Stock, error) {
 
 	quote := result["Global Quote"]
 
-	if quote == nil || len(quote) == 0 {
+	if len(quote) == 0 {
 		return nil, fmt.Errorf("no quote data for %s", symbol)
 	}
 
