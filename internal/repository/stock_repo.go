@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 )
 
@@ -24,17 +25,18 @@ func (r *StockRepository) Save(stock *models.Stock) error {
 }
 
 func (r *StockRepository) GetBySymbol(symbol string) (*models.Stock, error) {
-	query := `SELECT stock_id, symbol, stock_name, last_price, last_updated, created_at FROM stocks WHERE symbol = ?`
+	query := `SELECT symbol, stock_name, last_price FROM stocks WHERE symbol = ?`
 	row := r.DB.QueryRow(query, symbol)
 
 	var stock models.Stock
-	err := row.Scan(&stock.ID, &stock.Symbol, &stock.StockName, &stock.LastPrice, &stock.LastUpdated, &stock.CreatedAt)
+	err := row.Scan(&stock.Symbol, &stock.StockName, &stock.LastPrice)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
 
 	if err != nil {
+		fmt.Printf("Error fetching stock by symbol: %v\n", err)
 		return nil, err
 	}
 	return &stock, nil

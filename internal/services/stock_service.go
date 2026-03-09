@@ -1,7 +1,7 @@
 package services
 
 import (
-	// "database/sql"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -28,9 +28,9 @@ func (s *StockService) SearchStock(symbol string) (*models.Stock, error) {
 	if stock != nil {
 		return stock, nil
 	}
-	// if err == sql.ErrNoRows {
-	// 	return nil, nil
-	// }
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
 
 	url := fmt.Sprintf("https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=%s&apikey=%s", symbol, s.AlphaKey)
 
