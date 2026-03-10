@@ -31,7 +31,13 @@ func main() {
 
 	stockHandler := handlers.NewStockHandler(stockService)
 
-	routes.RegisterRoutes(e, authHandler, cfg.JWTSecret, stockHandler)
+	watchRepo := repository.NewWatchlistRepository(db)
+
+	watchService := services.NewWatchlistService(watchRepo, stockRepo)
+
+	watchHandler := handlers.NewWatchlistHandler(watchService)
+
+	routes.RegisterRoutes(e, authHandler, cfg.JWTSecret, stockHandler, watchHandler)
 
 	e.Logger.Fatal(e.Start(":" + cfg.AppPort))
 }
