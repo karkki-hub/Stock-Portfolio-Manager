@@ -22,7 +22,7 @@ func (h *StockHandler) SearchStock(c echo.Context) error {
 
 	stock, err := h.Service.SearchStock(symbol)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, models.ErrorResponse("failed to search stock"))
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
 	}
 	return c.JSON(http.StatusOK, models.SuccessResponse("stock found", stock))
 }

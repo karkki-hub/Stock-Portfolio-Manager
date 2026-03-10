@@ -1,11 +1,14 @@
 package services
 
 import (
-	"database/sql"
+	// "database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/repository"
@@ -22,14 +25,16 @@ func NewStockService(repo *repository.StockRepository, alphaKey string) *StockSe
 
 func (s *StockService) SearchStock(symbol string) (*models.Stock, error) {
 
+	symbol = strings.ToUpper(symbol)
+
 	stock, err := s.Repo.GetBySymbol(symbol)
 
-	if err == nil && stock != nil {
-		return stock, nil
+	if err != nil {
+		return nil, err
 	}
 
-	if err != nil && err != sql.ErrNoRows {
-		return nil, err
+	if stock != nil {
+		return stock, nil
 	}
 
 	url := fmt.Sprintf(
@@ -38,7 +43,13 @@ func (s *StockService) SearchStock(symbol string) (*models.Stock, error) {
 		s.AlphaKey,
 	)
 
-	resp, err := http.Get(url)
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := client.Get(url)
+	time.Sleep(2 * time.Second)
+
 	if err != nil {
 		return nil, err
 	}
@@ -87,31 +98,42 @@ func (s *StockService) SearchStock(symbol string) (*models.Stock, error) {
 
 func (s *StockService) GetStockName(symbol string) (string, error) {
 	url := fmt.Sprintf(
-		"https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=%s&apikey=%s",
+		"https://www.alphavantage.co/query?function=OVERVIEW&symbol=%s&apikey=%s",
 		symbol,
 		s.AlphaKey,
 	)
 
-	resp, err := http.Get(url)
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := client.Get(url)
 	if err != nil {
-		return "", err
+		return symbol, err
 	}
 	defer resp.Body.Close()
 
-	var result struct {
-		BestMatches []map[string]string `json:"bestMatches"`
-	}
-
-	err = json.NewDecoder(resp.Body).Decode(&result)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return symbol, err
 	}
 
-	if len(result.BestMatches) == 0 {
-		return symbol, nil // fallback
+	// fmt.Println(string(body)) // debug
+
+	var result struct {
+		Name string `json:"Name"`
 	}
 
-	fmt.Printf("Best matches for %s: %+v\n", symbol, result.BestMatches)
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return symbol, err
+	}
 
-	return result.BestMatches[0]["2. name"], nil
+	// fmt.Printf("Decoded: %+v\n", result)
+
+	if result.Name == "" {
+		return symbol, nil
+	}
+
+	return result.Name, nil
 }
