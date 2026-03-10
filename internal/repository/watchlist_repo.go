@@ -22,16 +22,16 @@ func (r *WatchlistRepository) Add(userID, stockID uint) error {
 
 func (r *WatchlistRepository) Remove(userID uint, symbol string) error {
 	query := `DELETE w FROM watchlist w
-JOIN stocks s ON w.stock_id = s.id
+JOIN stocks s ON w.stock_id = s.stock_id
 WHERE w.user_id = ? AND s.symbol = ?`
 	_, err := r.DB.Exec(query, userID, symbol)
 	return err
 }
 
 func (r *WatchlistRepository) GetByUser(userID uint) ([]models.WatchlistStock, error) {
-	query := `SELECT s.symbol, s.name, s.last_price
+	query := `SELECT s.symbol, s.stock_name, s.last_price
 FROM watchlist w
-JOIN stocks s ON w.stock_id = s.id
+JOIN stocks s ON w.stock_id = s.stock_id
 WHERE w.user_id = ?`
 	rows, err := r.DB.Query(query, userID)
 	if err != nil {
