@@ -80,7 +80,7 @@ function addWatch(symbol){
     .then(res=>res.json())
     .then(data=>{
         alert(data.message)
-        
+        loadWatchlist()
     })
 
 }
