@@ -39,6 +39,8 @@ function register(){
     .then(res=>res.json())
     .then(data=>{
         alert(data.message)
+
+        window.location = "login.html"
     })
 }
 function searchStock(){
@@ -78,6 +80,7 @@ function addWatch(symbol){
     .then(res=>res.json())
     .then(data=>{
         alert(data.message)
+        
     })
 
 }
@@ -129,4 +132,9 @@ alert(data.message)
 loadWatchlist()
 })
 
+}
+
+function logout(){
+localStorage.removeItem("token")
+window.location = "login.html"
 }
