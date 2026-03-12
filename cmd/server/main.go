@@ -17,6 +17,8 @@ func main() {
 
 	e := echo.New()
 
+	e.Static("/", "UI")
+
 	db := database.NewMySQL(cfg)
 
 	userRepo := repository.NewUserRepository(db)

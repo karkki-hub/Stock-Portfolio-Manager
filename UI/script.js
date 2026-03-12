@@ -28,11 +28,13 @@ function register(){
     const email = document.getElementById("email").value
     const phone = document.getElementById("phone").value
     const password = document.getElementById("password").value
+    const address = document.getElementById("address").value
+    const api_key = document.getElementById("api_key").value
 
     fetch(API + "/register",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({name,email,phone,password})
+        body:JSON.stringify({name,email,phone,password,address,api_key})
     })
     .then(res=>res.json())
     .then(data=>{
@@ -81,27 +83,50 @@ function addWatch(symbol){
 }
 function loadWatchlist(){
 
-    const token = localStorage.getItem("token")
+const token = localStorage.getItem("token")
 
-    fetch(API + "/api/watchlist",{
-        headers:{
-            "Authorization":"Bearer " + token
-        }
-    })
-    .then(res=>res.json())
-    .then(data=>{
+fetch("http://localhost:8080/api/watchlist",{
+headers:{
+"Authorization":"Bearer " + token
+}
+})
+.then(res => res.json())
+.then(data => {
 
-        const list = document.getElementById("watchlist")
-        list.innerHTML = ""
+const list = document.getElementById("watchlist")
+list.innerHTML = ""
 
-        data.data.forEach(stock => {
+data.data.forEach(stock => {
 
-            const li = document.createElement("li")
-            li.innerText = stock.symbol + " - " + stock.last_price
-            list.appendChild(li)
+const li = document.createElement("li")
 
-        })
+li.innerHTML =
+stock.symbol + " - " +
+stock.stock_name + " - " +
+stock.last_price +
+` <button onclick="removeWatch('${stock.symbol}')">Remove</button>`
 
-    })
+list.appendChild(li)
+
+})
+
+})
+}
+
+function removeWatch(symbol){
+
+const token = localStorage.getItem("token")
+
+fetch("http://localhost:8080/api/watchlist/" + symbol,{
+method:"DELETE",
+headers:{
+"Authorization":"Bearer " + token
+}
+})
+.then(res=>res.json())
+.then(data=>{
+alert(data.message)
+loadWatchlist()
+})
 
 }
