@@ -88,7 +88,7 @@ function loadWatchlist(){
 
 const token = localStorage.getItem("token")
 
-fetch("http://localhost:8080/api/watchlist",{
+fetch(API + "/api/watchlist",{
 headers:{
 "Authorization":"Bearer " + token
 }
@@ -96,20 +96,29 @@ headers:{
 .then(res => res.json())
 .then(data => {
 
-const list = document.getElementById("watchlist")
-list.innerHTML = ""
+const table = document.getElementById("watchlist")
+table.innerHTML = ""
 
-data.data.forEach(stock => {
+// sort by symbol
+const stocks = data.data.sort((a,b)=>{
+    return a.symbol.localeCompare(b.symbol)
+})
 
-const li = document.createElement("li")
+stocks.forEach(stock => {
 
-li.innerHTML =
-stock.symbol + " - " +
-stock.stock_name + " - " +
-stock.last_price +
-` <button onclick="removeWatch('${stock.symbol}')">Remove</button>`
+const tr = document.createElement("tr")
 
-list.appendChild(li)
+tr.innerHTML =
+`
+<td>${stock.symbol}</td>
+<td>${stock.stock_name}</td>
+<td>${stock.last_price}</td>
+<td>
+<button onclick="removeWatch('${stock.symbol}')">Remove</button>
+</td>
+`
+
+table.appendChild(tr)
 
 })
 
