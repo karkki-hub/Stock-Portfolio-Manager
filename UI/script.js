@@ -1,4 +1,52 @@
 const API = "http://localhost:8080"
+let tradetype = ""
+let tradesymbol = ""
+
+function opentrade(type, symbol, price){
+
+    tradetype = type
+    tradesymbol = symbol
+
+    document.getElementById("trade-title").innerText = type + " " + symbol
+    document.getElementById("trade-price").value = price
+    document.getElementById("trade-quantity").value = ""
+
+    document.getElementById("trademodal").style.display = "block"
+}
+
+function closeTrade(){
+    document.getElementById("trademodal").style.display = "none"
+}
+
+function submitTrade(){
+
+    const quantity = document.getElementById("trade-quantity").value
+    const price = document.getElementById("trade-price").value
+    const token = localStorage.getItem("token")
+
+    let url = ""
+
+    if(tradetype === "BUY"){
+        url = API + "/api/transactions/buy"
+    } else {
+        url = API + "/api/transactions/sell"
+    }
+
+    fetch(url,{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json",
+            "Authorization":"Bearer " + token
+        },
+        body:JSON.stringify({symbol: tradesymbol, quantity: parseInt(quantity), price: parseFloat(price)})
+}
+    )
+    .then(res=>res.json())
+    .then(data=>{
+        alert(data.message)
+        closeTrade()
+    })
+}
 
 function login() {
 
@@ -60,9 +108,11 @@ function searchStock(){
 
         document.getElementById("stock").innerHTML =
         `
-        ${stock.symbol} - ${stock.stock_name}
-        Price: ${stock.last_price}
-        <button onclick="addWatch('${stock.symbol}')">Add</button>
+        <b>${stock.symbol}</b> - ${stock.stock_name} <br>
+        Price: ${stock.last_price} <br>
+        <button onclick="addWatch('${stock.symbol}')">Add to Watchlist</button>
+        <button onclick="opentrade('BUY', '${stock.symbol}', ${stock.last_price})">Buy</button>
+        <button onclick="opentrade('SELL', '${stock.symbol}', ${stock.last_price})">Sell</button>
         `
     })
 
@@ -114,6 +164,8 @@ tr.innerHTML =
 <td>${stock.stock_name}</td>
 <td>${stock.last_price}</td>
 <td>
+<button onclick="opentrade('BUY','${stock.symbol}',${stock.last_price})">Buy</button>
+<button onclick="opentrade('SELL','${stock.symbol}',${stock.last_price})">Sell</button>
 <button onclick="removeWatch('${stock.symbol}')">Remove</button>
 </td>
 `

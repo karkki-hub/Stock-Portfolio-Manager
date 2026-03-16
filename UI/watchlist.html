@@ -23,3 +23,11 @@
 
 <script src="script.js"></script>
 <script>loadWatchlist()</script>
+
+<div id="trademodal" style="display: none; position: fixed; top: 30%; left: 40%; background: white; border: 1px solid black; padding: 20px;">
+    <h3 id="trade-title"></h3>
+    <input id="trade-quantity" placeholder="Quantity">
+    <input id="trade-price" placeholder="Price">
+    <button onclick="submitTrade()">Submit</button>
+    <button onclick="closeTrade()">Cancel</button>
+</div>
