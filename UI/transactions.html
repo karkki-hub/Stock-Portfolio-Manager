@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transaction History</title>
+</head>
+<body>
+
+<h2>Transaction History</h2>
+
+<table border="2">
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>Symbol</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody id="transactions"></tbody>
+</table>
+
+<br>
+<button onclick="logout()">Logout</button>
+
+<script src="script.js"></script>
+<script>
+    loadTransactions()
+</script>
+
+</body>
+</html>

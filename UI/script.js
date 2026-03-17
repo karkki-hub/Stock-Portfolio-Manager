@@ -195,7 +195,81 @@ loadWatchlist()
 
 }
 
+function goToTransactions(){
+    window.location = "transactions.html"
+}
+
 function logout(){
 localStorage.removeItem("token")
 window.location = "login.html"
 }
+
+function loadTransactions(){
+
+    const token = localStorage.getItem("token")
+
+    if(!token){
+        alert("Please login again")
+        window.location = "login.html"
+        return
+    }
+
+    fetch(API + "/api/transactions",{
+        headers:{
+            "Authorization":"Bearer " + token
+        }
+    })
+    .then(res => {
+        if(!res.ok){
+            throw new Error("Failed to fetch")
+        }
+        return res.json()
+    })
+    .then(data => {
+
+        console.log(data) // your array
+
+        const table = document.getElementById("transactions")
+        table.innerHTML = ""
+
+        if(data.length === 0){
+            table.innerHTML = "<tr><td colspan='6'>No transactions</td></tr>"
+            return
+        }
+
+        // Already sorted DESC from backend, but safe:
+        const transactions = [...data].sort((a,b)=>
+            new Date(b.created_at) - new Date(a.created_at)
+        )
+
+        transactions.forEach(tx => {
+
+            const tr = document.createElement("tr")
+
+            tr.innerHTML = `
+                <td style="color:${tx.type === 'BUY' ? 'green' : 'red'}">
+                    ${tx.type}
+                </td>
+                <td>${tx.stock_id}</td>
+                <td>${tx.quantity}</td>
+                <td>₹ ${tx.price}</td>
+                <td>₹ ${tx.total_amount}</td>
+                <td>${formatDate(tx.created_at)}</td>
+            `
+
+            table.appendChild(tr)
+        })
+
+    })
+    .catch(err => {
+        console.error(err)
+        alert("Error loading transactions")
+    })
+}
+
+function formatDate(dateString){
+    const d = new Date(dateString)
+    return d.toLocaleString()
+}
+
+
