@@ -3,9 +3,10 @@ package models
 import "time"
 
 type Transaction struct {
-	ID        uint      `json:"id"`
-	UserID    uint      `json:"user_id"`
-	StockID   uint      `json:"stock_id"`
+	ID        uint      `json:"-"`
+	UserID    uint      `json:"-"`
+	StockID   uint      `json:"-"`
+	Symbol    string    `json:"symbol"`
 	Type      string    `json:"type"` // "buy" or "sell"
 	Quantity  float64   `json:"quantity"`
 	Price     float64   `json:"price"`

@@ -1,9 +1,10 @@
 const API = "http://localhost:8080"
+
 let tradetype = ""
 let tradesymbol = ""
 
+// ================= TRADE MODAL =================
 function opentrade(type, symbol, price){
-
     tradetype = type
     tradesymbol = symbol
 
@@ -24,13 +25,14 @@ function submitTrade(){
     const price = document.getElementById("trade-price").value
     const token = localStorage.getItem("token")
 
-    let url = ""
-
-    if(tradetype === "BUY"){
-        url = API + "/api/transactions/buy"
-    } else {
-        url = API + "/api/transactions/sell"
+    if(!quantity || !price){
+        alert("Enter quantity and price")
+        return
     }
+
+    let url = tradetype === "BUY"
+        ? API + "/api/transactions/buy"
+        : API + "/api/transactions/sell"
 
     fetch(url,{
         method:"POST",
@@ -38,9 +40,12 @@ function submitTrade(){
             "Content-Type":"application/json",
             "Authorization":"Bearer " + token
         },
-        body:JSON.stringify({symbol: tradesymbol, quantity: parseInt(quantity), price: parseFloat(price)})
-}
-    )
+        body:JSON.stringify({
+            symbol: tradesymbol,
+            quantity: parseInt(quantity),
+            price: parseFloat(price)
+        })
+    })
     .then(res=>res.json())
     .then(data=>{
         alert(data.message)
@@ -48,6 +53,7 @@ function submitTrade(){
     })
 }
 
+// ================= AUTH =================
 function login() {
 
     const email = document.getElementById("email").value
@@ -56,7 +62,7 @@ function login() {
     fetch(API + "/login", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({email: email, password: password})
+        body: JSON.stringify({email, password})
     })
     .then(res => res.json())
     .then(data => {
@@ -67,9 +73,9 @@ function login() {
         } else {
             document.getElementById("msg").innerText = data.message
         }
-
     })
 }
+
 function register(){
 
     const name = document.getElementById("name").value
@@ -87,10 +93,13 @@ function register(){
     .then(res=>res.json())
     .then(data=>{
         alert(data.message)
-
-        window.location = "login.html"
+        if(data.status === "success"){
+            window.location = "login.html"
+        }
     })
 }
+
+// ================= STOCK SEARCH =================
 function searchStock(){
 
     const symbol = document.getElementById("symbol").value
@@ -115,8 +124,9 @@ function searchStock(){
         <button onclick="opentrade('SELL', '${stock.symbol}', ${stock.last_price})">Sell</button>
         `
     })
-
 }
+
+// ================= WATCHLIST =================
 function addWatch(symbol){
 
     const token = localStorage.getItem("token")
@@ -132,78 +142,68 @@ function addWatch(symbol){
         alert(data.message)
         loadWatchlist()
     })
-
 }
+
 function loadWatchlist(){
 
-const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token")
 
-fetch(API + "/api/watchlist",{
-headers:{
-"Authorization":"Bearer " + token
-}
-})
-.then(res => res.json())
-.then(data => {
+    fetch(API + "/api/watchlist",{
+        headers:{
+            "Authorization":"Bearer " + token
+        }
+    })
+    .then(res => res.json())
+    .then(response => {
 
-const table = document.getElementById("watchlist")
-table.innerHTML = ""
+        const data = response.data   // ✅ FIX
 
-// sort by symbol
-const stocks = data.data.sort((a,b)=>{
-    return a.symbol.localeCompare(b.symbol)
-})
+        const table = document.getElementById("watchlist")
+        table.innerHTML = ""
 
-stocks.forEach(stock => {
+        const stocks = data.sort((a,b)=>
+            a.symbol.localeCompare(b.symbol)
+        )
 
-const tr = document.createElement("tr")
+        stocks.forEach(stock => {
 
-tr.innerHTML =
-`
-<td>${stock.symbol}</td>
-<td>${stock.stock_name}</td>
-<td>${stock.last_price}</td>
-<td>
-<button onclick="opentrade('BUY','${stock.symbol}',${stock.last_price})">Buy</button>
-<button onclick="opentrade('SELL','${stock.symbol}',${stock.last_price})">Sell</button>
-<button onclick="removeWatch('${stock.symbol}')">Remove</button>
-</td>
-`
+            const tr = document.createElement("tr")
 
-table.appendChild(tr)
+            tr.innerHTML =
+            `
+            <td>${stock.symbol}</td>
+            <td>${stock.stock_name}</td>
+            <td>${stock.last_price}</td>
+            <td>
+                <button onclick="opentrade('BUY','${stock.symbol}',${stock.last_price})">Buy</button>
+                <button onclick="opentrade('SELL','${stock.symbol}',${stock.last_price})">Sell</button>
+                <button onclick="removeWatch('${stock.symbol}')">Remove</button>
+            </td>
+            `
 
-})
-
-})
+            table.appendChild(tr)
+        })
+    })
 }
 
 function removeWatch(symbol){
 
-const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token")
 
-fetch("http://localhost:8080/api/watchlist/" + symbol,{
-method:"DELETE",
-headers:{
-"Authorization":"Bearer " + token
-}
-})
-.then(res=>res.json())
-.then(data=>{
-alert(data.message)
-loadWatchlist()
-})
-
-}
-
-function goToTransactions(){
-    window.location = "transactions.html"
+    fetch(API + "/api/watchlist/" + symbol,{
+        method:"DELETE",
+        headers:{
+            "Authorization":"Bearer " + token
+        }
+    })
+    .then(res=>res.json())
+    .then(data=>{
+        alert(data.message)
+        loadWatchlist()
+    })
 }
 
-function logout(){
-localStorage.removeItem("token")
-window.location = "login.html"
-}
-
+// ================= TRANSACTIONS =================
 function loadTransactions(){
 
     const token = localStorage.getItem("token")
@@ -225,19 +225,16 @@ function loadTransactions(){
         }
         return res.json()
     })
-    .then(data => {
-
-        console.log(data) // your array
+    .then(data => {   // ✅ FIX HERE
 
         const table = document.getElementById("transactions")
         table.innerHTML = ""
 
-        if(data.length === 0){
+        if(!data || data.length === 0){
             table.innerHTML = "<tr><td colspan='6'>No transactions</td></tr>"
             return
         }
 
-        // Already sorted DESC from backend, but safe:
         const transactions = [...data].sort((a,b)=>
             new Date(b.created_at) - new Date(a.created_at)
         )
@@ -246,20 +243,20 @@ function loadTransactions(){
 
             const tr = document.createElement("tr")
 
+        
             tr.innerHTML = `
                 <td style="color:${tx.type === 'BUY' ? 'green' : 'red'}">
-                    ${tx.type}
+                    ${tx.type || "N/A"}
                 </td>
-                <td>${tx.stock_id}</td>
-                <td>${tx.quantity}</td>
-                <td>₹ ${tx.price}</td>
-                <td>₹ ${tx.total_amount}</td>
-                <td>${formatDate(tx.created_at)}</td>
+                <td>${tx.symbol || tx.stock_id || "N/A"}</td>
+                <td>${tx.quantity || 0}</td>
+                <td>${tx.price || 0}</td>
+                <td>${tx.total_amount || 0}</td>
+                <td>${tx.created_at ? formatDate(tx.created_at) : "N/A"}</td>
             `
 
             table.appendChild(tr)
         })
-
     })
     .catch(err => {
         console.error(err)
@@ -267,9 +264,20 @@ function loadTransactions(){
     })
 }
 
+// ================= HELPERS =================
 function formatDate(dateString){
-    const d = new Date(dateString)
-    return d.toLocaleString()
+    return new Date(dateString).toLocaleString()
 }
 
+function goToTransactions(){
+    window.location = "transactions.html"
+}
 
+function logout(){
+    localStorage.removeItem("token")
+    window.location = "login.html"
+}
+
+function goregister(){
+    window.location = "register.html"
+}

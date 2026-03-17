@@ -29,8 +29,20 @@ func (r *TransactionRepository) Create(transaction *models.Transaction) error {
 
 func (r *TransactionRepository) GetByUserID(userID uint) ([]*models.Transaction, error) {
 	query := `
-	SELECT id, user_id, stock_id, transaction_type, qty, price, tot_amt, created_at
-	FROM transactions WHERE user_id = ? ORDER BY created_at DESC`
+SELECT 
+	t.id, 
+	t.user_id, 
+	t.stock_id,
+	s.symbol AS symbol,
+	t.transaction_type, 
+	t.qty, 
+	t.price, 
+	t.tot_amt, 
+	t.created_at
+FROM transactions t
+JOIN stocks s ON t.stock_id = s.stock_id
+WHERE t.user_id = ?
+ORDER BY t.created_at DESC`
 
 	rows, err := r.DB.Query(query, userID)
 	if err != nil {
@@ -46,6 +58,7 @@ func (r *TransactionRepository) GetByUserID(userID uint) ([]*models.Transaction,
 			&transaction.ID,
 			&transaction.UserID,
 			&transaction.StockID,
+			&transaction.Symbol,
 			&transaction.Type,
 			&transaction.Quantity,
 			&transaction.Price,
