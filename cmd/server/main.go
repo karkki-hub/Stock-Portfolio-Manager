@@ -39,13 +39,19 @@ func main() {
 
 	watchHandler := handlers.NewWatchlistHandler(watchService)
 
+	portfolioRepo := repository.NewPortfolioRepository(db)
+
+	portfolioService := services.NewPortfolioService(portfolioRepo)
+
+	portfolioHandler := handlers.NewPortfolioHandler(portfolioService)
+
 	txRepo := repository.NewTransactionRepository(db)
 
-	txService := services.NewTransactionService(txRepo, stockRepo)
+	txService := services.NewTransactionService(txRepo, stockRepo, portfolioService)
 
 	txHandler := handlers.NewTransactionHandler(txService)
 
-	routes.RegisterRoutes(e, authHandler, cfg.JWTSecret, stockHandler, watchHandler, txHandler)
+	routes.RegisterRoutes(e, authHandler, cfg.JWTSecret, stockHandler, watchHandler, txHandler, portfolioHandler)
 
 	e.Logger.Fatal(e.Start(":" + cfg.AppPort))
 }

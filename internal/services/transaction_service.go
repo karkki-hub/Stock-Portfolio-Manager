@@ -7,12 +7,13 @@ import (
 )
 
 type TransactionService struct {
-	Repo      *repository.TransactionRepository
-	StockRepo *repository.StockRepository
+	Repo          *repository.TransactionRepository
+	StockRepo     *repository.StockRepository
+	Portfolioserv *PortfolioService
 }
 
-func NewTransactionService(r *repository.TransactionRepository, s *repository.StockRepository) *TransactionService {
-	return &TransactionService{Repo: r, StockRepo: s}
+func NewTransactionService(r *repository.TransactionRepository, s *repository.StockRepository, p *PortfolioService) *TransactionService {
+	return &TransactionService{Repo: r, StockRepo: s, Portfolioserv: p}
 }
 
 func (s *TransactionService) Buy(userID uint, Symbol string, quantity float64, price float64) error {
@@ -32,7 +33,11 @@ func (s *TransactionService) Buy(userID uint, Symbol string, quantity float64, p
 		Quantity: quantity,
 		Price:    price,
 	}
-	return s.Repo.Create(tx)
+	err = s.Repo.Create(tx)
+	if err != nil {
+		return err
+	}
+	return s.Portfolioserv.Buy(userID, stock.ID, quantity, price)
 }
 
 func (s *TransactionService) Sell(userID uint, Symbol string, quantity float64, price float64) error {
@@ -61,7 +66,11 @@ func (s *TransactionService) Sell(userID uint, Symbol string, quantity float64, 
 		Quantity: quantity,
 		Price:    price,
 	}
-	return s.Repo.Create(tx)
+	err = s.Repo.Create(tx)
+	if err != nil {
+		return err
+	}
+	return s.Portfolioserv.Sell(userID, stock.ID, quantity, price)
 }
 
 func (s *TransactionService) History(userID uint) ([]*models.Transaction, error) {
