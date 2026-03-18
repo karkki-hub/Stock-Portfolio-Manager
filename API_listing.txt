@@ -1,0 +1,201 @@
+----------------------------------------
+LIST OF APIs:
+
+1. POST    /register
+2. POST    /login
+
+3. GET     /stocks/:symbol
+
+4. POST    /watchlist
+5. DELETE  /watchlist/:symbol
+6. GET     /watchlist
+
+7. POST    /portfolio/buy
+8. POST    /portfolio/sell
+9. GET     /portfolio
+
+10. GET    /transactions
+
+11. GET    /reports/download
+
+-----------------------------------------
+PAYLOAD (REQUEST BODY):
+
+1. POST /register
+{
+  "name":"john doe"
+  "email": "user@example.com",
+  "password": "Password@123",
+  "api_koken":"XXXXXXXXXXX",
+  "phone":"9999999999",
+  "adderss":"9,example address"
+}
+
+2. POST /login
+{
+  "email": "user@example.com",
+  "password": "Password@123"
+}
+
+3. GET /stocks/:symbol
+No request body
+Example:
+GET /stocks/AAPL
+
+
+4. POST /watchlist
+{
+  "symbol": "AAPL"
+}
+
+5. DELETE /watchlist/:symbol
+No request body
+Example:
+DELETE /watchlist/AAPL
+
+6. GET /watchlist
+No request body
+
+
+7. POST /portfolio/buy
+{
+  "symbol": "AAPL",
+  "quantity": 5,
+  "price": 190.00
+}
+
+8. POST /portfolio/sell
+{
+  "symbol": "AAPL",
+  "quantity": 2,
+  "price": 195.00
+}
+
+9. GET /portfolio
+No request body
+
+
+10. GET /transactions
+No request body
+
+
+11. GET /reports/download
+No request body
+
+---------------------------------------------
+RESPONSE FORMAT:
+
+1. POST /register
+Success:
+{
+  "message": "User registered successfully"
+}
+
+Error:
+{
+  "error": "Email already exists"
+}
+
+
+2. POST /login
+Success:
+{
+  "token": "jwt_token_here"
+}
+
+Error:
+{
+  "error": "Invalid credentials"
+}
+
+
+3. GET /stocks/:symbol
+{
+  "symbol": "AAPL",
+  "last_price": 190.25
+}
+
+
+4. POST /watchlist
+{
+  "message": "Stock added to watchlist"
+}
+
+
+5. DELETE /watchlist/:symbol
+{
+  "message": "Stock removed from watchlist"
+}
+
+
+6. GET /watchlist
+[
+  {
+    "symbol": "AAPL",
+    "current_price": 190.25
+  },
+  {
+    "symbol": "GOOGL",
+    "current_price": 135.40
+  }
+]
+
+
+7. POST /portfolio/buy
+{
+  "message": "Stock purchased successfully",
+  "total_cost": 950.00
+}
+
+
+8. POST /portfolio/sell
+Success:
+{
+  "message": "Stock sold successfully",
+  "profit_loss": 10.00
+}
+
+Error:
+{
+  "error": "Insufficient shares"
+}
+
+
+9. GET /portfolio
+{
+  "total_investment": 5000.00,
+  "current_value": 5400.00,
+  "total_profit_loss": 400.00,
+  "stocks": [
+    {
+      "symbol": "AAPL",
+      "quantity": 5,
+      "average_buy_price": 190.00,
+      "current_price": 195.00,
+      "total_investment": 950.00,
+      "current_value": 975.00,
+      "profit_loss": 25.00
+    }
+  ]
+}
+
+10. GET /transactions
+[
+  {
+    "symbol": "AAPL",
+    "transaction_type": "BUY",
+    "quantity": 5,
+    "price": 190.00,
+    "total_amount": 950.00,
+    "timestamp": "2026-02-26T10:00:00Z"
+  }
+]
+
+
+11. GET /reports/download
+Response:
+CSV file download
+
+Example CSV:
+Symbol,Quantity,Avg Buy Price,Current Price,Total Investment,Current Value,Profit/Loss
+AAPL,5,190.00,195.00,950.00,975.00,25.00
