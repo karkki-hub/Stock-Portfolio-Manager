@@ -284,12 +284,12 @@ function goregister(){
 
 function loadPortfolio() {
 
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token")
 
     if (!token) {
-        alert("Please login again");
-        window.location = "login.html";
-        return;
+        alert("Please login again")
+        window.location = "login.html"
+        return
     }
 
     fetch(API + "/api/portfolio", {
@@ -299,32 +299,32 @@ function loadPortfolio() {
     })
     .then(res => {
         if (!res.ok) {
-            throw new Error("Failed to fetch");
+            throw new Error("Failed to fetch")
         }
         return res.json();
     })
     .then(data => {
 
         // ✅ Summary
-        document.getElementById("totalInvestment").innerText = data.tot_investment || 0;
-        document.getElementById("currentValue").innerText = data.tot_cur_investment || 0;
-        document.getElementById("totalPL").innerText = data.total_profit_loss || 0;
+        document.getElementById("totalInvestment").innerText = data.tot_investment || 0
+        document.getElementById("currentValue").innerText = data.tot_cur_investment || 0
+        document.getElementById("totalPL").innerText = data.total_profit_loss || 0
 
         // ✅ Table
-        const table = document.getElementById("portfolio");
-        table.innerHTML = "";
+        const table = document.getElementById("portfolio")
+        table.innerHTML = ""
 
         if (!data.stocks || data.stocks.length === 0) {
-            table.innerHTML = "<tr><td colspan='7'>No stocks found</td></tr>";
-            return;
+            table.innerHTML = "<tr><td colspan='7'>No stocks found</td></tr>"
+            return
         }
 
         // Optional: sort by highest profit
-        const stocks = [...data.stocks].sort((a, b) => b.profit_loss - a.profit_loss);
+        const stocks = [...data.stocks].sort((a, b) => b.profit_loss - a.profit_loss)
 
         stocks.forEach(stock => {
 
-            const tr = document.createElement("tr");
+            const tr = document.createElement("tr")
 
             tr.innerHTML = `
                 <td>${stock.symbol || "N/A"}</td>
@@ -336,16 +336,16 @@ function loadPortfolio() {
                 <td style="color:${stock.profit_loss >= 0 ? 'green' : 'red'}">
                     ${stock.profit_loss || 0}
                 </td>
-            `;
+            `
 
-            table.appendChild(tr);
-        });
+            table.appendChild(tr)
+        })
 
     })
     .catch(err => {
-        console.error(err);
-        alert("Error loading portfolio");
-    });
+        console.error(err)
+        alert("Error loading portfolio")
+    })
 }
 
 function goPortfolio(){
