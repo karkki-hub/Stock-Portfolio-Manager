@@ -3,6 +3,8 @@ const API = "http://localhost:8080"
 let tradetype = ""
 let tradesymbol = ""
 
+console.log("js loaded");
+
 // ================= TRADE MODAL =================
 function opentrade(type, symbol, price){
     tradetype = type
@@ -284,67 +286,42 @@ function goregister(){
 
 function loadPortfolio() {
 
-    const token = localStorage.getItem("token")
+    console.log("Function called")
 
-    if (!token) {
-        alert("Please login again")
-        window.location = "login.html"
-        return
-    }
+    const token = localStorage.getItem("token")
 
     fetch(API + "/api/portfolio", {
         headers: {
             "Authorization": "Bearer " + token
         }
     })
-    .then(res => {
-        if (!res.ok) {
-            throw new Error("Failed to fetch")
-        }
-        return res.json();
-    })
+    .then(res => res.json())
     .then(data => {
 
-        // ✅ Summary
-        document.getElementById("totalInvestment").innerText = data.tot_investment || 0
-        document.getElementById("currentValue").innerText = data.tot_cur_investment || 0
-        document.getElementById("totalPL").innerText = data.total_profit_loss || 0
+        console.log("DATA:", data)
 
-        // ✅ Table
-        const table = document.getElementById("portfolio")
-        table.innerHTML = ""
+        document.getElementById("totalInvestment").innerText = (data.tot_investment || 0).toFixed(2)
+        document.getElementById("currentValue").innerText = (data.tot_cur_investment || 0).toFixed(2)
+        document.getElementById("totalPL").innerText = (data.total_profit_loss || 0).toFixed(2)
 
-        if (!data.stocks || data.stocks.length === 0) {
-            table.innerHTML = "<tr><td colspan='7'>No stocks found</td></tr>"
-            return
-        }
+        const table = document.getElementById("stockTable") // ✅ FIXED
+        table.innerHTML = "";
 
-        // Optional: sort by highest profit
-        const stocks = [...data.stocks].sort((a, b) => b.profit_loss - a.profit_loss)
-
-        stocks.forEach(stock => {
-
+        data.stocks.forEach(stock => {
             const tr = document.createElement("tr")
 
             tr.innerHTML = `
-                <td>${stock.symbol || "N/A"}</td>
-                <td>${stock.quantity || 0}</td>
-                <td>${stock.avg_buy_price || 0}</td>
-                <td>${stock.total_investment || 0}</td>
-                <td>${stock.current_price || 0}</td>
-                <td>${stock.current_value || 0}</td>
-                <td style="color:${stock.profit_loss >= 0 ? 'green' : 'red'}">
-                    ${stock.profit_loss || 0}
-                </td>
+                <td>${stock.symbol}</td>
+                <td>${stock.quantity}</td>
+                <td>${(stock.avg_buy_price || 0).toFixed(2)}</td>
+                <td>${(stock.current_price || 0).toFixed(2)}</td>
+                <td>${(stock.profit_loss || 0).toFixed(2)}</td>
+                <td style="color:${stock.profit_loss >= 0 ? 'green' : 'red'}">${stock.profit_loss >= 0 ? 'Profit' : 'Loss'}</td>
             `
 
             table.appendChild(tr)
         })
 
-    })
-    .catch(err => {
-        console.error(err)
-        alert("Error loading portfolio")
     })
 }
 

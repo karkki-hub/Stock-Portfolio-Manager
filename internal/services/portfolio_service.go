@@ -3,6 +3,7 @@ package services
 import (
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/repository"
+	"karkki-hub/Stock-Portfolio-Manager/internal/utilities"
 )
 
 type PortfolioService struct {
@@ -37,9 +38,9 @@ func (s *PortfolioService) Get(userID uint) (*models.PortfolioSummary, error) {
 	}
 
 	summary := &models.PortfolioSummary{
-		TotalInvestment: totalInvestment,
-		TotCurrentValue: currentval,
-		TotalProfitLoss: currentval - totalInvestment,
+		TotalInvestment: utilities.RoundUp(totalInvestment),
+		TotCurrentValue: utilities.RoundUp(currentval),
+		TotalProfitLoss: utilities.RoundUp(currentval - totalInvestment),
 		Stocks:          stocks,
 	}
 

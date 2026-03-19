@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
+	"karkki-hub/Stock-Portfolio-Manager/internal/utilities"
 )
 
 type PortfolioRepository struct {
@@ -89,8 +90,8 @@ WHERE p.user_id = ?`
 			return nil, err
 		}
 
-		p.CurrentValue = p.CurrentPrice * p.Quantity
-		p.ProfitLoss = p.CurrentValue - p.TotalInvest
+		p.CurrentValue = utilities.RoundUp(p.CurrentPrice * p.Quantity)
+		p.ProfitLoss = utilities.RoundUp(p.CurrentValue - p.TotalInvest)
 
 		portfolios = append(portfolios, p)
 	}
