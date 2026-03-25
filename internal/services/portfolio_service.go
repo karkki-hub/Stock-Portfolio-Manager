@@ -19,7 +19,14 @@ func (s *PortfolioService) Buy(userID uint, stockID uint, qty float64, price flo
 }
 
 func (s *PortfolioService) Sell(userID uint, stockID uint, qty float64, price float64) error {
-	return s.Repo.Sell(userID, stockID, qty, price)
+
+	var sell error
+
+	sell = s.Repo.Sell(userID, stockID, qty, price)
+
+	s.Repo.CheckStock()
+
+	return sell
 }
 
 func (s *PortfolioService) Get(userID uint) (*models.PortfolioSummary, error) {

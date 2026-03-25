@@ -55,6 +55,15 @@ WHERE user_id = ? AND stock_id = ?`
 	return err
 }
 
+func (r *PortfolioRepository) CheckStock() error {
+	query := `DELETE FROM portfolios WHERE qty = 0`
+
+	_, nil := r.DB.Exec(
+		query,
+	)
+	return nil
+}
+
 func (r *PortfolioRepository) GetByUser(userID uint) ([]models.Portfolio, error) {
 	query := `
 SELECT 
