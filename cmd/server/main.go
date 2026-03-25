@@ -51,7 +51,13 @@ func main() {
 
 	txHandler := handlers.NewTransactionHandler(txService)
 
-	routes.RegisterRoutes(e, authHandler, cfg.JWTSecret, stockHandler, watchHandler, txHandler, portfolioHandler)
+	profileRepo := repository.NewProfileRepository(db)
+
+	profileService := services.NewProfileService(profileRepo)
+
+	profileHandler := handlers.NewProfileHandler(profileService)
+
+	routes.RegisterRoutes(e, authHandler, cfg.JWTSecret, stockHandler, watchHandler, txHandler, portfolioHandler, profileHandler)
 
 	e.Logger.Fatal(e.Start(":" + cfg.AppPort))
 }

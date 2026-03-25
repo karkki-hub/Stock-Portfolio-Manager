@@ -14,6 +14,7 @@ func RegisterRoutes(e *echo.Echo,
 	watchHandler *handlers.WatchlistHandler,
 	txHandler *handlers.TransactionHandler,
 	portfolioHandler *handlers.PortfolioHandler,
+	profileHandler *handlers.ProfileHandler,
 ) {
 
 	e.POST("/register", authHandler.Register)
@@ -37,4 +38,6 @@ func RegisterRoutes(e *echo.Echo,
 	api.POST("/transactions/sell", txHandler.Sell)
 	api.GET("/transactions", txHandler.History)
 	api.GET("/portfolio", portfolioHandler.Get)
+
+	api.GET("/profile", profileHandler.Get)
 }
