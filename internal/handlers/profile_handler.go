@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	// "encoding/json"
 	"net/http"
 
 	// "karkki-hub/Stock-Portfolio-Manager/internal/models"
+	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
+
 	// "karkki-hub/Stock-Portfolio-Manager/internal/utilities"
 
 	"github.com/labstack/echo/v4"
@@ -27,4 +30,29 @@ func (h *ProfileHandler) Get(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return c.JSON(http.StatusOK, transactions)
+}
+
+func (h *ProfileHandler) Update(c echo.Context) error {
+	var user models.Profile
+
+	// Bind request body to struct
+	if err := c.Bind(&user); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request body",
+		})
+	}
+
+	userID := getUserID(c)
+
+	// Use phone from request instead of hardcoding
+	err := h.Service.Repo.UpdatePhone(userID, user.Phone)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "Profile updated successfully",
+	})
 }

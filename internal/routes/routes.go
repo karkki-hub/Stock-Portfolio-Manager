@@ -40,4 +40,5 @@ func RegisterRoutes(e *echo.Echo,
 	api.GET("/portfolio", portfolioHandler.Get)
 
 	api.GET("/profile", profileHandler.Get)
+	api.PUT("/profile/update", profileHandler.Update)
 }
