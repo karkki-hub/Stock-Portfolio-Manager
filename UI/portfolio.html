@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Portfolio</title>
+</head>
+<body>
+
+<h1>My Portfolio</h1>
+
+<div>
+  <p>Total Investment: <span id="totalInvestment"></span></p>
+  <p>Current Value: <span id="currentValue"></span></p>
+  <p>Total P/L: <span id="totalPL"></span></p>
+</div>
+
+<h2>Stocks</h2>
+<table border="1">
+  <thead>
+    <tr>
+      <th>Symbol</th>
+      <th>Qty</th>
+      <th>Avg Price</th>
+      <th>Current Price</th>
+      <th>Value Difference</th>
+      <th>P/L</th>
+    </tr>
+  </thead>
+  <tbody id="stockTable"></tbody>
+</table>
+<button onclick="window.location='watchlist.html'">Back to Watchlist</button>
+<script src="script.js"></script>
+<script>
+    loadPortfolio()
+</script>
+</body>
+</html>

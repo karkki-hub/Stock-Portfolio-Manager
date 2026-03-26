@@ -7,7 +7,13 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func RegisterRoutes(e *echo.Echo, authHandler *handlers.AuthHandler, jwtSecret string, stockHandler *handlers.StockHandler, watchHandler *handlers.WatchlistHandler,
+func RegisterRoutes(e *echo.Echo,
+	authHandler *handlers.AuthHandler,
+	jwtSecret string,
+	stockHandler *handlers.StockHandler,
+	watchHandler *handlers.WatchlistHandler,
+	txHandler *handlers.TransactionHandler,
+	portfolioHandler *handlers.PortfolioHandler,
 ) {
 
 	e.POST("/register", authHandler.Register)
@@ -27,4 +33,8 @@ func RegisterRoutes(e *echo.Echo, authHandler *handlers.AuthHandler, jwtSecret s
 	api.POST("/watchlist", watchHandler.Add)
 	api.DELETE("/watchlist/:symbol", watchHandler.Remove)
 
+	api.POST("/transactions/buy", txHandler.Buy)
+	api.POST("/transactions/sell", txHandler.Sell)
+	api.GET("/transactions", txHandler.History)
+	api.GET("/portfolio", portfolioHandler.Get)
 }

@@ -17,6 +17,8 @@ func main() {
 
 	e := echo.New()
 
+	e.Static("/", "UI")
+
 	db := database.NewMySQL(cfg)
 
 	userRepo := repository.NewUserRepository(db)
@@ -37,7 +39,19 @@ func main() {
 
 	watchHandler := handlers.NewWatchlistHandler(watchService)
 
-	routes.RegisterRoutes(e, authHandler, cfg.JWTSecret, stockHandler, watchHandler)
+	portfolioRepo := repository.NewPortfolioRepository(db)
+
+	portfolioService := services.NewPortfolioService(portfolioRepo)
+
+	portfolioHandler := handlers.NewPortfolioHandler(portfolioService)
+
+	txRepo := repository.NewTransactionRepository(db)
+
+	txService := services.NewTransactionService(txRepo, stockRepo, portfolioService)
+
+	txHandler := handlers.NewTransactionHandler(txService)
+
+	routes.RegisterRoutes(e, authHandler, cfg.JWTSecret, stockHandler, watchHandler, txHandler, portfolioHandler)
 
 	e.Logger.Fatal(e.Start(":" + cfg.AppPort))
 }
