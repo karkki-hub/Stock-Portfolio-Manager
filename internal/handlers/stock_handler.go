@@ -24,5 +24,6 @@ func (h *StockHandler) SearchStock(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
 	}
+
 	return c.JSON(http.StatusOK, models.SuccessResponse("stock found", stock))
 }

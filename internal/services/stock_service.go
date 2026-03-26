@@ -100,6 +100,8 @@ func (s *StockService) SearchStock(symbol string) (*models.Stock, error) {
 }
 
 func (s *StockService) GetStockName(symbol string) (string, error) {
+	time.Sleep(1 * time.Second) // To respect rate limits
+
 	url := fmt.Sprintf(
 		"https://www.alphavantage.co/query?function=OVERVIEW&symbol=%s&apikey=%s",
 		symbol,
