@@ -15,6 +15,7 @@ type Config struct {
 	DBPass    string
 	DBName    string
 	JWTSecret string
+	AlphaKey  string
 }
 
 func LoadConfig() *Config {
@@ -31,6 +32,7 @@ func LoadConfig() *Config {
 		DBPass:    getEnv("DB_PASSWORD", ""),
 		DBName:    getEnv("DB_NAME", ""),
 		JWTSecret: getEnv("JWT_SECRET", "secret"),
+		AlphaKey:  getEnv("ALPHA_VANTAGE_API_KEY", ""),
 	}
 }
 
