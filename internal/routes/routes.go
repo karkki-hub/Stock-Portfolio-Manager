@@ -7,14 +7,18 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func SetupRoutes(e *echo.Echo) {
+func RegisterRoutes(e *echo.Echo, authHandler *handlers.AuthHandler, jwtSecret string,
+) {
 
-	e.POST("/register", handlers.Register)
-	e.POST("/login", handlers.Login)
+	e.POST("/register", authHandler.Register)
+	e.POST("/login", authHandler.Login)
 
-	protected := e.Group("/api")
-	protected.Use(middleware.JWTMiddleware())
-	protected.GET("/test", func(c echo.Context) error {
-		return c.JSON(200, "JWT Protected Route Working")
+	// Protected routes
+	api := e.Group("/api")
+	api.Use(middleware.JWTMiddleware(jwtSecret))
+
+	api.GET("/test", func(c echo.Context) error {
+		return c.JSON(200, map[string]string{"message": "JWT auth successful"})
 	})
+
 }
