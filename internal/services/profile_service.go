@@ -17,14 +17,6 @@ func (s *ProfileService) GetProfile(userID uint) (*models.Profile, error) {
 	return s.Repo.GetUserById(userID)
 }
 
-func (s *ProfileService) ChangeEmail(userID uint, email string) error {
-	return s.Repo.UpdateEmail(userID, email)
-}
-
-func (s *ProfileService) ChangePhone(userID uint, phone string) error {
-	return s.Repo.UpdatePhone(userID, phone)
-}
-
-func (s *ProfileService) ChangeAddress(userID uint, address string) error {
-	return s.Repo.UpdateAddress(userID, address)
+func (s *ProfileService) ChangeProfile(userID uint, phone string, email string, address string) error {
+	return s.Repo.Update(userID, phone, email, address)
 }

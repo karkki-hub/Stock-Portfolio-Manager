@@ -18,11 +18,11 @@ func (s *PortfolioService) Buy(userID uint, stockID uint, qty float64, price flo
 	return s.Repo.Update(userID, stockID, qty, price)
 }
 
-func (s *PortfolioService) Sell(userID uint, stockID uint, qty float64, price float64) error {
+func (s *PortfolioService) Sell(userID uint, stockID uint, qty float64) error {
 
 	var sell error
 
-	sell = s.Repo.Sell(userID, stockID, qty, price)
+	sell = s.Repo.Sell(userID, stockID, qty)
 
 	s.Repo.CheckStock()
 

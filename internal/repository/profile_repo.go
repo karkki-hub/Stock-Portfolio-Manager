@@ -27,7 +27,6 @@ func (r *ProfileRepository) GetUserById(userID uint) (*models.Profile, error) {
 		&user.Name,
 		&user.Phone,
 		&user.Address,
-		// &user.UpdatedAT,
 	)
 
 	if err != nil {
@@ -37,20 +36,8 @@ func (r *ProfileRepository) GetUserById(userID uint) (*models.Profile, error) {
 	return &user, nil
 }
 
-func (r *ProfileRepository) UpdatePhone(userID uint, phone string) error {
-	query := `UPDATE users SET phone = ? WHERE user_id = ?`
-	_, err := r.DB.Exec(query, phone, userID)
-	return err
-}
-
-func (r *ProfileRepository) UpdateEmail(userID uint, email string) error {
-	query := `UPDATE users SET email = ? WHERE user_id = ?`
-	_, err := r.DB.Exec(query, email, userID)
-	return err
-}
-
-func (r *ProfileRepository) UpdateAddress(userID uint, address string) error {
-	query := `UPDATE users SET Address = ? WHERE user_id = ?`
-	_, err := r.DB.Exec(query, address, userID)
+func (r *ProfileRepository) Update(userID uint, phone string, email string, address string) error {
+	query := `UPDATE users SET phone = ?, email = ?, Address = ?  WHERE user_id = ?`
+	_, err := r.DB.Exec(query, phone, email, address, userID)
 	return err
 }

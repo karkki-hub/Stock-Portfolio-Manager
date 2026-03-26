@@ -44,8 +44,7 @@ func (h *ProfileHandler) Update(c echo.Context) error {
 
 	userID := getUserID(c)
 
-	// Use phone from request instead of hardcoding
-	err := h.Service.Repo.UpdatePhone(userID, user.Phone)
+	err := h.Service.Repo.Update(userID, user.Phone, user.Email, user.Address)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),

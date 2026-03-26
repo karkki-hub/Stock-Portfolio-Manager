@@ -70,7 +70,7 @@ func (s *TransactionService) Sell(userID uint, Symbol string, quantity float64, 
 	if err != nil {
 		return err
 	}
-	return s.Portfolioserv.Sell(userID, stock.ID, quantity, price)
+	return s.Portfolioserv.Sell(userID, stock.ID, quantity)
 }
 
 func (s *TransactionService) History(userID uint) ([]*models.Transaction, error) {
