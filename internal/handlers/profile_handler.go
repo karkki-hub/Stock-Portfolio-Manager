@@ -7,6 +7,7 @@ import (
 	// "karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
+	"karkki-hub/Stock-Portfolio-Manager/internal/utilities"
 
 	// "karkki-hub/Stock-Portfolio-Manager/internal/utilities"
 
@@ -33,18 +34,34 @@ func (h *ProfileHandler) Get(c echo.Context) error {
 }
 
 func (h *ProfileHandler) Update(c echo.Context) error {
-	var user models.Profile
+	type UpdateUser struct {
+		Email   string `json:"email"`
+		Phone   string `json:"phone"`
+		Address string `json:"address"`
+	}
+
+	var req UpdateUser
 
 	// Bind request body to struct
-	if err := c.Bind(&user); err != nil {
+	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid request body",
 		})
 	}
 
+	if req.Email == "" || req.Address == "" || req.Phone == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "all fields are required",
+		})
+	}
+
+	if !utilities.IsValidEmail(req.Email) {
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse("invalid email format"))
+	}
+
 	userID := getUserID(c)
 
-	err := h.Service.Repo.Update(userID, user.Phone, user.Email, user.Address)
+	err := h.Service.Repo.Update(userID, req.Phone, req.Email, req.Address)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
