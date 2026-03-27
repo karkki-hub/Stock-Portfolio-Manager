@@ -41,4 +41,5 @@ func RegisterRoutes(e *echo.Echo,
 
 	api.GET("/profile", profileHandler.Get)
 	api.PUT("/profile/update", profileHandler.Update)
+	api.POST("/profile/reset_pswd", profileHandler.Reset)
 }

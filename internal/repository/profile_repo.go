@@ -41,3 +41,24 @@ func (r *ProfileRepository) Update(userID uint, phone string, email string, addr
 	_, err := r.DB.Exec(query, phone, email, address, userID)
 	return err
 }
+
+func (r *ProfileRepository) ExistingPassword(userID uint) (string, error) {
+	query := `SELECT password FROM users WHERE user_id = ?`
+
+	var Password string
+
+	err := r.DB.QueryRow(query, userID).Scan(
+		&Password,
+	)
+
+	if err != nil {
+		return "", err
+	}
+	return Password, err
+}
+
+func (r *ProfileRepository) ResetPassword(userID uint, password string) error {
+	query := `UPDATE users SET password = ?  WHERE user_id = ?`
+	_, err := r.DB.Exec(query, password, userID)
+	return err
+}

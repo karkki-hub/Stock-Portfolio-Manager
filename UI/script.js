@@ -328,3 +328,67 @@ function loadPortfolio() {
 function goPortfolio(){
     window.location = "portfolio.html"
 }
+
+function loadProfile() {
+
+    const token = localStorage.getItem("token")
+
+    fetch(API + "/api/profile", {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("profile", data)
+
+        document.getElementById("profilename").value = data.name || ""
+        document.getElementById("profilemail").value = data.email || ""
+        document.getElementById("profilePhone").value = data.phone || ""
+        document.getElementById("profileAddress").value = data.address || ""
+
+    })
+    .catch(err => {
+        console.error(err)
+        document.getElementById("profileMsg").innerText = "Failed to load profile"
+    })
+}
+
+function updateProfile() {
+
+    const token = localStorage.getItem("token")
+
+    const email = document.getElementById("profileEmail").value
+    const phone = document.getElementById("profilePhone").value
+    const address = document.getElementById("profileAddress").value
+
+    if (!email || !phone || !address) {
+        document.getElementById("profileMsg").innerText = "All fields required"
+        return
+    }
+
+    fetch(API + "/api/profile", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+            email: email,
+            phone: phone,
+            address: address
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("profileMsg").innerText = data.message || data.error
+    })
+    .catch(err => {
+        console.error(err)
+        document.getElementById("profileMsg").innerText = "Update failed"
+    })
+}
+
+function goProfile(){
+    window.location = "profile.html"
+}

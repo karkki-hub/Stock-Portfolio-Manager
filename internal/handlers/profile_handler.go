@@ -72,3 +72,56 @@ func (h *ProfileHandler) Update(c echo.Context) error {
 		"message": "Profile updated successfully",
 	})
 }
+
+func (h *ProfileHandler) Reset(c echo.Context) error {
+	type ResetPassword struct {
+		OldPassword     string `json:"oldpassword"`
+		NewPassword     string `json:"newpassword"`
+		ReEnterPassword string `json:"reenterpassword"`
+	}
+
+	var req ResetPassword
+
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request body",
+		})
+	}
+
+	if req.NewPassword != req.ReEnterPassword {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Re enered Password doesn't match",
+		})
+	}
+
+	userID := getUserID(c)
+
+	storedHash, err := h.Service.Repo.ExistingPassword(userID)
+	if err != nil {
+		return err
+	}
+
+	if err := utilities.CheckPasswordHash(req.OldPassword, storedHash); err != nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Old password is incorrect",
+		})
+	}
+
+	if err := utilities.CheckPasswordHash(req.NewPassword, storedHash); err == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Reusing the old password not allowed",
+		})
+	}
+
+	er := h.Service.ChangePassword(userID, req.NewPassword)
+
+	if er != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": er.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "Password changed successfully",
+	})
+}
