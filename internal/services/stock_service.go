@@ -150,6 +150,9 @@ func (s *StockService) SearchStocksByKeyword(keyword string) ([]models.StockDeta
 	if err != nil {
 		return s.GetStockName(keyword)
 	}
+	if stock == nil {
+		return s.GetStockName(keyword)
+	}
 	return stock, nil
 }
 
