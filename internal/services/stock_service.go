@@ -9,6 +9,8 @@ import (
 
 	"time"
 
+	"golang.org/x/time/rate"
+
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/repository"
 )
@@ -16,10 +18,12 @@ import (
 type StockService struct {
 	Repo     *repository.StockRepository
 	AlphaKey string
+
+	quoteLimiter *rate.Limiter
 }
 
 func NewStockService(repo *repository.StockRepository, alphaKey string) *StockService {
-	return &StockService{Repo: repo, AlphaKey: alphaKey}
+	return &StockService{Repo: repo, AlphaKey: alphaKey, quoteLimiter: rate.NewLimiter(rate.Every(time.Minute/2), 2)}
 }
 
 func (s *StockService) AddStock(symbol string, name string) error {
@@ -92,6 +96,10 @@ func (s *StockService) GetStockName(keyword string) ([]models.StockDetails, erro
 		keyword,
 		s.AlphaKey,
 	)
+
+	if !s.quoteLimiter.Allow() {
+		return nil, fmt.Errorf("Alpha Vantage GLOBAL_QUOTE limit exceeded (5 requests per minute)")
+	}
 
 	client := http.Client{
 		Timeout: 10 * time.Second,
@@ -175,3 +183,13 @@ func (s *StockService) GetOrCreateStock(symbol string) (*models.Stock, error) {
 
 	return stock, nil
 }
+
+// func NewStockService(repo *repository.StockRepository, alphaKey string) *StockService {
+// 	return &StockService{
+// 		Repo:     repo,
+// 		AlphaKey: alphaKey,
+
+// 		// 5 requests per minute
+// 		quoteLimiter: rate.NewLimiter(rate.Every(time.Minute/5), 5),
+// 	}
+// }
