@@ -28,9 +28,9 @@ func (h *ProfileHandler) Get(c echo.Context) error {
 
 	transactions, err := h.Service.GetProfile(userId)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
 	}
-	return c.JSON(http.StatusOK, transactions)
+	return c.JSON(http.StatusOK, models.SuccessResponse("profile data retrieved", transactions))
 }
 
 func (h *ProfileHandler) Update(c echo.Context) error {
@@ -44,15 +44,13 @@ func (h *ProfileHandler) Update(c echo.Context) error {
 
 	// Bind request body to struct
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return c.JSON(http.StatusBadRequest,
+			models.ErrorResponse("Invalid request body"))
 	}
 
 	if req.Email == "" || req.Address == "" || req.Phone == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "all fields are required",
-		})
+		return c.JSON(http.StatusBadRequest,
+			models.ErrorResponse("all fields are required"))
 	}
 
 	if !utilities.IsValidEmail(req.Email) {
@@ -63,14 +61,11 @@ func (h *ProfileHandler) Update(c echo.Context) error {
 
 	err := h.Service.Repo.Update(userID, req.Phone, req.Email, req.Address)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return c.JSON(http.StatusInternalServerError,
+			models.ErrorResponse(err.Error()))
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{
-		"message": "Profile updated successfully",
-	})
+	return c.JSON(http.StatusOK, models.SuccessResponse("profile updated successfully", nil))
 }
 
 func (h *ProfileHandler) Reset(c echo.Context) error {
@@ -83,45 +78,38 @@ func (h *ProfileHandler) Reset(c echo.Context) error {
 	var req ResetPassword
 
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Invalid request body",
-		})
+		return c.JSON(http.StatusBadRequest,
+			models.ErrorResponse("Invalid request body"))
 	}
 
 	if req.NewPassword != req.ReEnterPassword {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "Re enered Password doesn't match",
-		})
+		return c.JSON(http.StatusBadRequest,
+			models.ErrorResponse("Re-entered password doesn't match"))
 	}
 
 	userID := getUserID(c)
 
 	storedHash, err := h.Service.Repo.ExistingPassword(userID)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusInternalServerError,
+			models.ErrorResponse(err.Error()))
 	}
 
 	if err := utilities.CheckPasswordHash(req.OldPassword, storedHash); err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "Old password is incorrect",
-		})
+		return c.JSON(http.StatusUnauthorized,
+			models.ErrorResponse("Old password is incorrect"))
 	}
 
 	if err := utilities.CheckPasswordHash(req.NewPassword, storedHash); err == nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{
-			"error": "Reusing the old password not allowed",
-		})
+		return c.JSON(http.StatusUnauthorized,
+			models.ErrorResponse("Reusing the old password not allowed"))
 	}
 
 	er := h.Service.ChangePassword(userID, req.NewPassword)
 
 	if er != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": er.Error(),
-		})
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(er.Error()))
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{
-		"message": "Password changed successfully",
-	})
+	return c.JSON(http.StatusOK, models.SuccessResponse("Password changed successfully", nil))
 }

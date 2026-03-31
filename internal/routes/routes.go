@@ -28,7 +28,7 @@ func RegisterRoutes(e *echo.Echo,
 		return c.JSON(200, map[string]string{"message": "JWT auth successful"})
 	})
 
-	api.GET("/stocks/:symbol", stockHandler.SearchStock)
+	api.GET("/stocks/:keyword", stockHandler.SearchStock)
 
 	api.GET("/watchlist", watchHandler.Get)
 	api.POST("/watchlist", watchHandler.Add)

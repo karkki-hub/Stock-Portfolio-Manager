@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	// "karkki-hub/Stock-Portfolio-Manager/internal/models"
+	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
 
 	"github.com/labstack/echo/v4"
@@ -28,16 +29,16 @@ func (h *TransactionHandler) Buy(c echo.Context) error {
 	var req TransactionRequest
 
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse("invalid request"))
 	}
 
 	userId := getUserID(c)
 
 	err := h.Service.Buy(userId, req.Symbol, req.Quantity, req.Price)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
 	}
-	return c.JSON(http.StatusOK, map[string]string{"message": "transaction successful"})
+	return c.JSON(http.StatusOK, models.SuccessResponse("transaction successful", nil))
 }
 
 func (h *TransactionHandler) Sell(c echo.Context) error {
@@ -45,16 +46,16 @@ func (h *TransactionHandler) Sell(c echo.Context) error {
 	var req TransactionRequest
 
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse("invalid request"))
 	}
 
 	userId := getUserID(c)
 
 	err := h.Service.Sell(userId, req.Symbol, req.Quantity, req.Price)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
 	}
-	return c.JSON(http.StatusOK, map[string]string{"message": "transaction successful"})
+	return c.JSON(http.StatusOK, models.SuccessResponse("transaction successful", nil))
 }
 
 func (h *TransactionHandler) History(c echo.Context) error {
@@ -63,7 +64,7 @@ func (h *TransactionHandler) History(c echo.Context) error {
 
 	transactions, err := h.Service.History(userId)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
 	}
-	return c.JSON(http.StatusOK, transactions)
+	return c.JSON(http.StatusOK, models.SuccessResponse("transaction history retrieved", transactions))
 }

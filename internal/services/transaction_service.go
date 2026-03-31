@@ -10,14 +10,15 @@ type TransactionService struct {
 	Repo          *repository.TransactionRepository
 	StockRepo     *repository.StockRepository
 	Portfolioserv *PortfolioService
+	StockService  *StockService
 }
 
-func NewTransactionService(r *repository.TransactionRepository, s *repository.StockRepository, p *PortfolioService) *TransactionService {
-	return &TransactionService{Repo: r, StockRepo: s, Portfolioserv: p}
+func NewTransactionService(r *repository.TransactionRepository, s *repository.StockRepository, p *PortfolioService, ss *StockService) *TransactionService {
+	return &TransactionService{Repo: r, StockRepo: s, Portfolioserv: p, StockService: ss}
 }
 
 func (s *TransactionService) Buy(userID uint, Symbol string, quantity float64, price float64) error {
-	stock, err := s.StockRepo.GetBySymbol(Symbol)
+	stock, err := s.StockService.GetOrCreateStock(Symbol)
 	if err != nil {
 		return err
 	}

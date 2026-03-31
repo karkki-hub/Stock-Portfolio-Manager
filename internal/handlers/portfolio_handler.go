@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
 
 	"github.com/labstack/echo/v4"
@@ -22,7 +23,7 @@ func (h *PortfolioHandler) Get(c echo.Context) error {
 
 	data, err := h.Service.Get(userId)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
 	}
-	return c.JSON(http.StatusOK, data)
+	return c.JSON(http.StatusOK, models.SuccessResponse("portfolio data retrieved", data))
 }

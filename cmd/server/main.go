@@ -35,7 +35,7 @@ func main() {
 
 	watchRepo := repository.NewWatchlistRepository(db)
 
-	watchService := services.NewWatchlistService(watchRepo, stockRepo)
+	watchService := services.NewWatchlistService(watchRepo, stockRepo, stockService)
 
 	watchHandler := handlers.NewWatchlistHandler(watchService)
 
@@ -47,7 +47,7 @@ func main() {
 
 	txRepo := repository.NewTransactionRepository(db)
 
-	txService := services.NewTransactionService(txRepo, stockRepo, portfolioService)
+	txService := services.NewTransactionService(txRepo, stockRepo, portfolioService, stockService)
 
 	txHandler := handlers.NewTransactionHandler(txService)
 
