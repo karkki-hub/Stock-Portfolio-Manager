@@ -115,16 +115,31 @@ function searchStock(){
     .then(res=>res.json())
     .then(data=>{
 
-        const stock = data.data
+        const stocks = data.data
+        const table = document.getElementById("stock")
+        table.innerHTML = ""
 
-        document.getElementById("stock").innerHTML =
-        `
-        <b>${stock.symbol}</b> - ${stock.stock_name} <br>
-        Price: ${stock.last_price} <br>
-        <button onclick="addWatch('${stock.symbol}')">Add to Watchlist</button>
-        <button onclick="opentrade('BUY', '${stock.symbol}', ${stock.last_price})">Buy</button>
-        <button onclick="opentrade('SELL', '${stock.symbol}', ${stock.last_price})">Sell</button>
-        `
+        if(!stocks || stocks.length === 0){
+            table.innerHTML = "<tr><td colspan='3'>No stocks found</td></tr>"
+            return
+        }
+
+        stocks.forEach(stock => {
+
+            const tr = document.createElement("tr")
+
+            tr.innerHTML = `
+                <td>${stock.symbol}</td>
+                <td>${stock.stock_name}</td>
+                <td>
+                    <button onclick="addWatch('${stock.symbol}')">Add</button>
+                    <button onclick="opentrade('BUY','${stock.symbol}',0)">Buy</button>
+                    <button onclick="opentrade('SELL','${stock.symbol}',0)">Sell</button>
+                </td>
+            `
+
+            table.appendChild(tr)
+        })
     })
 }
 
@@ -227,8 +242,9 @@ function loadTransactions(){
         }
         return res.json()
     })
-    .then(data => {   // ✅ FIX HERE
+    .then(response => {   // ✅ FIX HERE
 
+        const data = response.data
         const table = document.getElementById("transactions")
         table.innerHTML = ""
 
@@ -240,6 +256,8 @@ function loadTransactions(){
         const transactions = [...data].sort((a,b)=>
             new Date(b.created_at) - new Date(a.created_at)
         )
+
+        console.log("Transactions:", transactions)
 
         transactions.forEach(tx => {
 
@@ -296,7 +314,8 @@ function loadPortfolio() {
         }
     })
     .then(res => res.json())
-    .then(data => {
+    .then(response => {
+        const data = response.data
 
         console.log("DATA:", data)
 
