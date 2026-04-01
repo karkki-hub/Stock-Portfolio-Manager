@@ -35,7 +35,7 @@ func (h *ProfileHandler) Get(c echo.Context) error {
 
 func (h *ProfileHandler) Update(c echo.Context) error {
 	type UpdateUser struct {
-		Email   string `json:"email"`
+		Name    string `json:"name"`
 		Phone   string `json:"phone"`
 		Address string `json:"address"`
 	}
@@ -48,18 +48,14 @@ func (h *ProfileHandler) Update(c echo.Context) error {
 			models.ErrorResponse("Invalid request body"))
 	}
 
-	if req.Email == "" || req.Address == "" || req.Phone == "" {
+	if req.Name == "" || req.Address == "" || req.Phone == "" {
 		return c.JSON(http.StatusBadRequest,
 			models.ErrorResponse("all fields are required"))
 	}
 
-	if !utilities.IsValidEmail(req.Email) {
-		return c.JSON(http.StatusBadRequest, models.ErrorResponse("invalid email format"))
-	}
-
 	userID := getUserID(c)
 
-	err := h.Service.Repo.Update(userID, req.Phone, req.Email, req.Address)
+	err := h.Service.Repo.Update(userID, req.Phone, req.Name, req.Address)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
 			models.ErrorResponse(err.Error()))
@@ -76,6 +72,11 @@ func (h *ProfileHandler) Reset(c echo.Context) error {
 	}
 
 	var req ResetPassword
+
+	if !utilities.IsValidPassword(req.NewPassword) {
+		return c.JSON(http.StatusBadRequest,
+			models.ErrorResponse("Password must be at least 8 characters long and contain at least one uppercase and one lowercase letter and a special character"))
+	}
 
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest,

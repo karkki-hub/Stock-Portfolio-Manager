@@ -18,8 +18,8 @@ func (s *ProfileService) GetProfile(userID uint) (*models.Profile, error) {
 	return s.Repo.GetUserById(userID)
 }
 
-func (s *ProfileService) ChangeProfile(userID uint, phone string, email string, address string) error {
-	return s.Repo.Update(userID, phone, email, address)
+func (s *ProfileService) ChangeProfile(userID uint, phone string, name string, address string) error {
+	return s.Repo.Update(userID, phone, name, address)
 }
 
 func (s *ProfileService) ChangePassword(userID uint, password string) error {

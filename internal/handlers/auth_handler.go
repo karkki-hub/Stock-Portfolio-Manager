@@ -46,6 +46,11 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse("invalid email format"))
 	}
 
+	if !utilities.IsValidPassword(req.Password) {
+		return c.JSON(http.StatusBadRequest,
+			models.ErrorResponse("Password must be at least 8 characters long and contain at least one uppercase and one lowercase letter and a special character"))
+	}
+
 	if len(req.Phone) != 10 {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse("phone number must be 10 digits"))
 	}

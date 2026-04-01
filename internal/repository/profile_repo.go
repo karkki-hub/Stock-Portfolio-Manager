@@ -36,9 +36,9 @@ func (r *ProfileRepository) GetUserById(userID uint) (*models.Profile, error) {
 	return &user, nil
 }
 
-func (r *ProfileRepository) Update(userID uint, phone string, email string, address string) error {
-	query := `UPDATE users SET phone = ?, email = ?, Address = ?  WHERE user_id = ?`
-	_, err := r.DB.Exec(query, phone, email, address, userID)
+func (r *ProfileRepository) Update(userID uint, phone string, name string, address string) error {
+	query := `UPDATE users SET phone = ?, name = ?, Address = ?  WHERE user_id = ?`
+	_, err := r.DB.Exec(query, phone, name, address, userID)
 	return err
 }
 
