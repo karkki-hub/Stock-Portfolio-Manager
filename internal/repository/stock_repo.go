@@ -41,3 +41,39 @@ func (r *StockRepository) GetBySymbol(symbol string) (*models.Stock, error) {
 	}
 	return &stock, nil
 }
+
+func (r *StockRepository) SearchByKeyword(keyword string) ([]models.StockDetails, error) {
+	query := `SELECT symbol, stock_name FROM stock_list 
+	WHERE symbol LIKE ? OR stock_name LIKE ? LIMIT 10`
+	search := "%" + keyword + "%"
+	rows, err := r.DB.Query(query, search, search)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var stocks []models.StockDetails
+
+	for rows.Next() {
+		var stock models.StockDetails
+		err := rows.Scan(&stock.Symbol, &stock.StockName)
+		if err != nil {
+			return nil, err
+		}
+		stocks = append(stocks, stock)
+	}
+
+	return stocks, nil
+}
+
+func (r *StockRepository) GetStockName(symbol string) string {
+	query := `SELECT stock_name FROM stock_list WHERE symbol = ?`
+	row := r.DB.QueryRow(query, symbol)
+	var name string
+	err := row.Scan(&name)
+	if err != nil {
+		return ""
+	}
+	return name
+}

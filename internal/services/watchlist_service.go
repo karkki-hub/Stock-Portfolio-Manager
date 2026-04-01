@@ -5,19 +5,21 @@ import (
 )
 
 type WatchlistService struct {
-	WatchRepo *repository.WatchlistRepository
-	StockRepo *repository.StockRepository
+	WatchRepo    *repository.WatchlistRepository
+	StockRepo    *repository.StockRepository
+	StockService *StockService
 }
 
-func NewWatchlistService(w *repository.WatchlistRepository, s *repository.StockRepository) *WatchlistService {
-	return &WatchlistService{WatchRepo: w, StockRepo: s}
+func NewWatchlistService(w *repository.WatchlistRepository, s *repository.StockRepository, ss *StockService) *WatchlistService {
+	return &WatchlistService{WatchRepo: w, StockRepo: s, StockService: ss}
 }
 
 func (s *WatchlistService) Add(userID uint, symbol string) error {
-	stock, err := s.StockRepo.GetBySymbol(symbol)
+	stock, err := s.StockService.GetOrCreateStock(symbol)
 	if err != nil {
 		return err
 	}
+
 	return s.WatchRepo.Add(userID, stock.ID)
 }
 
