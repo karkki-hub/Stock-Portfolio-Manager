@@ -15,6 +15,7 @@ func RegisterRoutes(e *echo.Echo,
 	txHandler *handlers.TransactionHandler,
 	portfolioHandler *handlers.PortfolioHandler,
 	profileHandler *handlers.ProfileHandler,
+	reportHandler *handlers.ReportHandler,
 ) {
 
 	e.POST("/register", authHandler.Register)
@@ -42,4 +43,6 @@ func RegisterRoutes(e *echo.Echo,
 	api.GET("/profile", profileHandler.Get)
 	api.PUT("/profile/update", profileHandler.Update)
 	api.POST("/profile/reset_pswd", profileHandler.Reset)
+
+	api.GET("/report", reportHandler.ExportReportCSV)
 }
