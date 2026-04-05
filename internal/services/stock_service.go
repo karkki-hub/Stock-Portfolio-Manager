@@ -70,6 +70,12 @@ func (s *StockService) AddStock(symbol string, name string) error {
 		return fmt.Errorf("invalid price format")
 	}
 
+	dateStr := quote["07. latest trading day"]
+
+	date, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		// handle error
+	}
 	stock := &models.Stock{
 		Symbol:    symbol,
 		StockName: name,
@@ -77,6 +83,19 @@ func (s *StockService) AddStock(symbol string, name string) error {
 	}
 
 	err = s.Repo.Save(stock)
+	if err != nil {
+		return err
+	}
+
+	var stockID uint
+
+	savedStock, err := s.Repo.GetBySymbol(symbol)
+	if err != nil {
+		return err
+	}
+	stockID = savedStock.ID
+
+	err = s.Repo.UpdateHistory(stockID, price, date)
 	if err != nil {
 		return err
 	}

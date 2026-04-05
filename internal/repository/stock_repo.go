@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
+	"time"
 )
 
 type StockRepository struct {
@@ -21,7 +22,13 @@ func (r *StockRepository) Save(stock *models.Stock) error {
 	last_price = VALUES(last_price),
 	last_updated = CURRENT_TIMESTAMP`
 	_, err := r.DB.Exec(query, stock.Symbol, stock.StockName, stock.LastPrice)
-	return err
+	if err != nil {
+		fmt.Printf("Error saving stock: %v\n", err)
+		return err
+	}
+
+	return nil
+
 }
 
 func (r *StockRepository) GetBySymbol(symbol string) (*models.Stock, error) {
@@ -76,4 +83,35 @@ func (r *StockRepository) GetStockName(symbol string) string {
 		return ""
 	}
 	return name
+}
+
+func (r *StockRepository) GetAllStocks() ([]models.Stock, error) {
+	query := `SELECT stock_id, symbol FROM stocks`
+	rows, err := r.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var stocks []models.Stock
+	for rows.Next() {
+		var stock models.Stock
+		err := rows.Scan(&stock.ID, &stock.Symbol)
+		if err != nil {
+			return nil, err
+		}
+		stocks = append(stocks, stock)
+	}
+	return stocks, nil
+}
+
+func (r *StockRepository) UpdateStockPrice(stockID uint, price float64) error {
+	query := `UPDATE stocks SET last_price = ?, last_updated = CURRENT_TIMESTAMP WHERE stock_id = ?`
+	_, err := r.DB.Exec(query, price, stockID)
+	return err
+}
+
+func (r *StockRepository) UpdateHistory(stockID uint, price float64, date time.Time) error {
+	query := `INSERT INTO stock_price_history (stock_id, closing_price, price_date) VALUES (?, ?, ?)`
+	_, err := r.DB.Exec(query, stockID, price, date)
+	return err
 }

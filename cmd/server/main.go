@@ -7,6 +7,7 @@ import (
 	"karkki-hub/Stock-Portfolio-Manager/internal/repository"
 	"karkki-hub/Stock-Portfolio-Manager/internal/routes"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
+	"karkki-hub/Stock-Portfolio-Manager/internal/utilities"
 
 	"github.com/labstack/echo/v4"
 )
@@ -30,6 +31,16 @@ func main() {
 	stockRepo := repository.NewStockRepository(db)
 
 	stockService := services.NewStockService(stockRepo, cfg.AlphaKey)
+
+	priceService := services.NewPriceService(stockRepo)
+
+	cronManager := utilities.NewCronManager()
+
+	cronManager.AddJob("16 23 * * *", func() {
+		priceService.UpdatePrices()
+	})
+
+	cronManager.Start()
 
 	stockHandler := handlers.NewStockHandler(stockService)
 

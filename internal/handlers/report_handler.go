@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/csv"
 	"net/http"
+	"os"
 
 	"fmt"
 
@@ -31,22 +32,33 @@ func (h *ReportHandler) ExportReportCSV(c echo.Context) error {
 		})
 	}
 
+	filepath := "C:\\Users\\karkki\\Desktop\\reports\\report.csv"
+
+	file, err := os.Create(filepath)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	defer file.Close()
+
 	// Set headers for download
 	c.Response().Header().Set("Content-Type", "text/csv")
 	c.Response().Header().Set("Content-Disposition", "attachment; filename=report.csv")
 
-	writer := csv.NewWriter(c.Response())
+	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
 	writer.Write([]string{
 		"",
-		fmt.Sprintf("%s", report.Name),
+		report.Name,
 		"",
 	})
 
 	// ✅ Header row
 	writer.Write([]string{
 		"Symbol",
+		"Stock Name",
 		"Quantity",
 		"Avg Buy Price",
 		"Current Price",
@@ -59,6 +71,7 @@ func (h *ReportHandler) ExportReportCSV(c echo.Context) error {
 	for _, s := range report.StocksOwned {
 		row := []string{
 			s.Symbol,
+			s.StockName,
 			fmt.Sprintf("%.2f", s.Qty),
 			fmt.Sprintf("%.2f", s.AvgBuyPrice),
 			fmt.Sprintf("%.2f", s.CurrentPrice),
@@ -69,9 +82,14 @@ func (h *ReportHandler) ExportReportCSV(c echo.Context) error {
 		writer.Write(row)
 	}
 
+	writer.Write([]string{
+		"",
+	})
+
 	// ✅ Total row (very important)
 	writer.Write([]string{
 		"TOTAL",
+		"",
 		"",
 		"",
 		"",

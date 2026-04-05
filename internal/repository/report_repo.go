@@ -49,7 +49,8 @@ WHERE p.user_id = ?`
 		if err != nil {
 			return nil, err
 		}
-		stock.ProfitLoss = stock.CurrentPrice - stock.TotalInvestment
+		stock.CurrentValue = stock.Qty * stock.CurrentPrice
+		stock.ProfitLoss = stock.CurrentValue - stock.TotalInvestment
 		stocks = append(stocks, stock)
 		totalInvestment += stock.TotalInvestment
 		totalCurrentValue += stock.CurrentValue
