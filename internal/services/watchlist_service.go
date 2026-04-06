@@ -30,3 +30,11 @@ func (s *WatchlistService) Remove(userID uint, symbol string) error {
 func (s *WatchlistService) Get(userID uint) (interface{}, error) {
 	return s.WatchRepo.GetByUser(userID)
 }
+
+func (s *WatchlistService) GetStockHistory(symbol string) (interface{}, error) {
+	stock, err := s.StockRepo.GetBySymbol(symbol)
+	if err != nil {
+		return nil, err
+	}
+	return s.WatchRepo.GetStockHistory(stock.ID)
+}

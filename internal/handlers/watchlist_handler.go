@@ -60,3 +60,17 @@ func (h *WatchlistHandler) Get(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, models.SuccessResponse("watchlist retrieved", stocks))
 }
+
+func (h *WatchlistHandler) GetStockHistory(c echo.Context) error {
+
+	symbol := c.Param("symbol")
+	stock, err := h.Service.StockRepo.GetBySymbol(symbol)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
+	}
+	history, err := h.Service.GetStockHistory(stock.Symbol)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
+	}
+	return c.JSON(http.StatusOK, models.SuccessResponse("stock history retrieved", history))
+}

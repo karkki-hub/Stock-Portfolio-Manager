@@ -33,6 +33,7 @@ func RegisterRoutes(e *echo.Echo,
 	api.GET("/watchlist", watchHandler.Get)
 	api.POST("/watchlist", watchHandler.Add)
 	api.DELETE("/watchlist/:symbol", watchHandler.Remove)
+	api.GET("/watchlist/history/:symbol", watchHandler.GetStockHistory)
 
 	api.POST("/transactions/buy", txHandler.Buy)
 	api.POST("/transactions/sell", txHandler.Sell)
