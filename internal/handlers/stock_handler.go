@@ -18,9 +18,9 @@ func NewStockHandler(s *services.StockService) *StockHandler {
 }
 
 func (h *StockHandler) SearchStock(c echo.Context) error {
-	symbol := c.Param("symbol")
+	keyword := c.Param("keyword")
 
-	stock, err := h.Service.SearchStock(symbol)
+	stock, err := h.Service.SearchStocksByKeyword(keyword)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
 	}

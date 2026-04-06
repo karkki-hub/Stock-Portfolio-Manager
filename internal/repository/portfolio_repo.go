@@ -37,10 +37,10 @@ qty = qty + VALUES(qty)`
 	return err
 }
 
-func (r *PortfolioRepository) Sell(userID uint, stockID uint, qty float64, price float64) error {
+func (r *PortfolioRepository) Sell(userID uint, stockID uint, qty float64) error {
 	query := `
 UPDATE portfolios 
-SET qty = qty - ?, tot_investment = tot_investment - ( ? * ? ),
+SET qty = qty - ?, tot_investment = tot_investment - ( ? * avg_buy_price ),
 UPDATED_AT = CURRENT_TIMESTAMP
 WHERE user_id = ? AND stock_id = ?`
 
@@ -48,7 +48,6 @@ WHERE user_id = ? AND stock_id = ?`
 		query,
 		qty,
 		qty,
-		price,
 		userID,
 		stockID,
 	)

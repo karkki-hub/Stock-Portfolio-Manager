@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"net/http"
-	"regexp"
 
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
+	"karkki-hub/Stock-Portfolio-Manager/internal/utilities"
 
 	"github.com/labstack/echo/v4"
 )
@@ -42,8 +42,13 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse("email, password, and name are required"))
 	}
 
-	if !isValidEmail(req.Email) {
+	if !utilities.IsValidEmail(req.Email) {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse("invalid email format"))
+	}
+
+	if !utilities.IsValidPassword(req.Password) {
+		return c.JSON(http.StatusBadRequest,
+			models.ErrorResponse("Password must be at least 8 characters long and contain at least one uppercase and one lowercase letter and a special character"))
 	}
 
 	if len(req.Phone) != 10 {
@@ -91,10 +96,4 @@ func (h *AuthHandler) Login(c echo.Context) error {
 			"token": token,
 		},
 	))
-}
-
-func isValidEmail(email string) bool {
-	emailRegex := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
-	re := regexp.MustCompile(emailRegex)
-	return re.MatchString(email)
 }
