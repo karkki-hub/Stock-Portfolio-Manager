@@ -7,7 +7,7 @@ type Transaction struct {
 	UserID    uint      `json:"-"`
 	StockID   uint      `json:"-"`
 	Symbol    string    `json:"symbol"`
-	Type      string    `json:"type"` // "buy" or "sell"
+	Type      string    `json:"type"`
 	Quantity  float64   `json:"quantity"`
 	Price     float64   `json:"price"`
 	TotalAmt  float64   `json:"total_amount"`

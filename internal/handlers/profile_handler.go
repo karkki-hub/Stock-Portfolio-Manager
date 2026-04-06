@@ -1,15 +1,11 @@
 package handlers
 
 import (
-	// "encoding/json"
 	"net/http"
 
-	// "karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
-	"karkki-hub/Stock-Portfolio-Manager/internal/utilities"
-
-	// "karkki-hub/Stock-Portfolio-Manager/internal/utilities"
+	"karkki-hub/Stock-Portfolio-Manager/pkg/utilities"
 
 	"github.com/labstack/echo/v4"
 )
@@ -42,7 +38,6 @@ func (h *ProfileHandler) Update(c echo.Context) error {
 
 	var req UpdateUser
 
-	// Bind request body to struct
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest,
 			models.ErrorResponse("Invalid request body"))
@@ -55,7 +50,7 @@ func (h *ProfileHandler) Update(c echo.Context) error {
 
 	userID := getUserID(c)
 
-	err := h.Service.Repo.Update(userID, req.Phone, req.Name, req.Address)
+	err := h.Service.ChangeProfile(userID, req.Phone, req.Name, req.Address)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
 			models.ErrorResponse(err.Error()))
@@ -73,14 +68,14 @@ func (h *ProfileHandler) Reset(c echo.Context) error {
 
 	var req ResetPassword
 
-	if !utilities.IsValidPassword(req.NewPassword) {
-		return c.JSON(http.StatusBadRequest,
-			models.ErrorResponse("Password must be at least 8 characters long and contain at least one uppercase and one lowercase letter and a special character"))
-	}
-
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest,
 			models.ErrorResponse("Invalid request body"))
+	}
+
+	if !utilities.IsValidPassword(req.NewPassword) {
+		return c.JSON(http.StatusBadRequest,
+			models.ErrorResponse("Password must be at least 8 characters long and contain at least one uppercase and one lowercase letter and a special character"))
 	}
 
 	if req.NewPassword != req.ReEnterPassword {

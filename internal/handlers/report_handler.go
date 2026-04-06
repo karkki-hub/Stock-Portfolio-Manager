@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"time"
 
+	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
-	"karkki-hub/Stock-Portfolio-Manager/internal/utilities"
+	"karkki-hub/Stock-Portfolio-Manager/pkg/utilities"
 
 	"github.com/labstack/echo/v4"
 )
@@ -29,32 +30,24 @@ func (h *ReportHandler) ExportReportCSV(c echo.Context) error {
 
 	report, err := h.Service.GetReport(userID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
 	}
 
-	// Set headers
 	c.Response().Header().Set("Content-Type", "text/csv")
 	c.Response().Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%d-report.csv", userID))
 
-	// Write directly to response
 	err = utilities.WriteReportCSV(c.Response(), report)
 	if err != nil {
 		err = h.Service.LogReport(fmt.Sprintf("%d-report.csv", userID), "download", "FAILED")
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
 	}
 
 	err = h.Service.LogReport(fmt.Sprintf("%d-report.csv", userID), "download", "SUCCESS")
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": err.Error(),
-		})
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
 	}
 
-	return nil
+	return c.JSON(http.StatusOK, models.SuccessResponse("report downloaded successfully", nil))
 }
 
 func (h *ReportHandler) DailyReport() error {
@@ -71,12 +64,11 @@ func (h *ReportHandler) DailyReport() error {
 			return err
 		}
 
-		filepath := fmt.Sprintf(
-			"C:\\Users\\karkki\\Desktop\\reports\\%d-%s-%s.csv",
-			user.ID,
-			user.Name,
-			time.Now().Format("2006-01-02"),
-		)
+		basepath := "reports"
+
+		_ = os.MkdirAll(basepath, os.ModePerm)
+
+		filepath := fmt.Sprintf("%s/%d-%s-%s.csv", basepath, user.ID, user.Name, time.Now().Format("2006-01-02"))
 
 		filename := fmt.Sprintf("%d-%s-%s.csv", user.ID, user.Name, time.Now().Format("2006-01-02"))
 		file, err := os.Create(filepath)

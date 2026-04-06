@@ -7,7 +7,7 @@ import (
 
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/repository"
-	utilities "karkki-hub/Stock-Portfolio-Manager/internal/utilities"
+	utilities "karkki-hub/Stock-Portfolio-Manager/pkg/utilities"
 
 	"github.com/golang-jwt/jwt/v5"
 )

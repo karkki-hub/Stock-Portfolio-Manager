@@ -7,7 +7,7 @@ import (
 	"karkki-hub/Stock-Portfolio-Manager/internal/repository"
 	"karkki-hub/Stock-Portfolio-Manager/internal/routes"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
-	"karkki-hub/Stock-Portfolio-Manager/internal/utilities"
+	"karkki-hub/Stock-Portfolio-Manager/pkg/utilities"
 
 	"github.com/labstack/echo/v4"
 )
@@ -76,7 +76,7 @@ func main() {
 
 	reportHandler := handlers.NewReportHandler(reportService, profileService, cronservice)
 
-	cronManager.AddJob("0 0 * * *", func() {
+	cronManager.AddJob("47 17 * * *", func() {
 		reportHandler.DailyReport()
 	})
 

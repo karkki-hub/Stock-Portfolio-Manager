@@ -21,7 +21,6 @@ func RegisterRoutes(e *echo.Echo,
 	e.POST("/register", authHandler.Register)
 	e.POST("/login", authHandler.Login)
 
-	// Protected routes
 	api := e.Group("/api")
 	api.Use(middleware.JWTMiddleware(jwtSecret))
 

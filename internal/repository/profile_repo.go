@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 
-	// "fmt"
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 )
 
@@ -84,7 +83,6 @@ func (r *ProfileRepository) GetAllUserId() ([]models.UserID, error) {
 		userIDs = append(userIDs, u)
 	}
 
-	// good practice: check row iteration error
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}

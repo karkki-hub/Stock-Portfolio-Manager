@@ -37,13 +37,11 @@ func (s *StockService) AddStock(symbol string, name string) error {
 	}
 	defer resp.Body.Close()
 
-	// Read full body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
 
-	// Rate-limit check
 	var check map[string]interface{}
 	json.Unmarshal(body, &check)
 	if msg, ok := check["Note"]; ok {
@@ -53,7 +51,6 @@ func (s *StockService) AddStock(symbol string, name string) error {
 		return fmt.Errorf("alphavantage rate limit: %v", msg)
 	}
 
-	// Decode normally
 	var result map[string]map[string]string
 	err = json.Unmarshal(body, &result)
 	if err != nil {
@@ -74,7 +71,7 @@ func (s *StockService) AddStock(symbol string, name string) error {
 
 	date, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
-		// handle error
+		return fmt.Errorf("invalid date format")
 	}
 	stock := &models.Stock{
 		Symbol:    symbol,

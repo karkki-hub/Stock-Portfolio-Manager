@@ -12,7 +12,6 @@ func CheckPasswordHash(password, hash string) error {
 }
 
 func IsValidPassword(password string) bool {
-	// Simple password validation - at least 8 characters, one uppercase, one lowercase, one digit
 	if len(password) < 8 {
 		return false
 	}

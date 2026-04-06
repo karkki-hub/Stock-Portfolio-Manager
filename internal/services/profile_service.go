@@ -3,7 +3,7 @@ package services
 import (
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/repository"
-	utilities "karkki-hub/Stock-Portfolio-Manager/internal/utilities"
+	utilities "karkki-hub/Stock-Portfolio-Manager/pkg/utilities"
 )
 
 type ProfileService struct {

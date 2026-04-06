@@ -12,12 +12,10 @@ func WriteReportCSV(w io.Writer, report *models.Report) error {
 	writer := csv.NewWriter(w)
 	defer writer.Flush()
 
-	// Title
 	if err := writer.Write([]string{"", "NAME:", report.Name, ""}); err != nil {
 		return err
 	}
 
-	// Header
 	if err := writer.Write([]string{
 		"Symbol",
 		"Stock Name",
@@ -31,7 +29,6 @@ func WriteReportCSV(w io.Writer, report *models.Report) error {
 		return err
 	}
 
-	// Data
 	for _, s := range report.StocksOwned {
 		row := []string{
 			s.Symbol,
@@ -49,10 +46,8 @@ func WriteReportCSV(w io.Writer, report *models.Report) error {
 		}
 	}
 
-	// Empty row
 	_ = writer.Write([]string{""})
 
-	// Total
 	if err := writer.Write([]string{
 		"TOTAL",
 		"",

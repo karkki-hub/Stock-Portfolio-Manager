@@ -5,7 +5,7 @@ import (
 
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
-	"karkki-hub/Stock-Portfolio-Manager/internal/utilities"
+	"karkki-hub/Stock-Portfolio-Manager/pkg/utilities"
 
 	"github.com/labstack/echo/v4"
 )
