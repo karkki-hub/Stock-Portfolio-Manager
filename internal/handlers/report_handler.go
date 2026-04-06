@@ -16,10 +16,11 @@ import (
 type ReportHandler struct {
 	Service *services.ReportService
 	Profile *services.ProfileService
+	Cron    *services.CronService
 }
 
-func NewReportHandler(s *services.ReportService, p *services.ProfileService) *ReportHandler {
-	return &ReportHandler{Service: s, Profile: p}
+func NewReportHandler(s *services.ReportService, p *services.ProfileService, c *services.CronService) *ReportHandler {
+	return &ReportHandler{Service: s, Profile: p, Cron: c}
 }
 
 func (h *ReportHandler) ExportReportCSV(c echo.Context) error {
@@ -84,7 +85,8 @@ func (h *ReportHandler) DailyReport() error {
 		}
 
 		if err := utilities.WriteReportCSV(file, report); err != nil {
-			err = h.Service.LogReport(filename, "daily", "FAILED")
+			h.Service.LogReport(filename, "daily", "FAILED")
+			h.Cron.CreateLog("Daily Report", "FAILED", fmt.Sprintf("Failed to generate report for user %d: %s", user.ID, err.Error()))
 			file.Close()
 			return err
 		}
@@ -95,6 +97,8 @@ func (h *ReportHandler) DailyReport() error {
 		}
 		file.Close()
 	}
+
+	h.Cron.CreateLog("Daily Report", "SUCCESS", "Daily reports generated successfully")
 
 	return nil
 }

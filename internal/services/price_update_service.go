@@ -10,27 +10,44 @@ import (
 )
 
 type PriceService struct {
-	StockRepo *repository.StockRepository
+	StockRepo   *repository.StockRepository
+	CronService *CronService
 }
 
-func NewPriceService(stockRepo *repository.StockRepository) *PriceService {
-	return &PriceService{StockRepo: stockRepo}
+func NewPriceService(stockRepo *repository.StockRepository, cronService *CronService) *PriceService {
+	return &PriceService{StockRepo: stockRepo, CronService: cronService}
 }
 
-// ✅ Move struct outside
 type TimeSeriesResponse struct {
 	TimeSeries map[string]map[string]string `json:"Time Series (Daily)"`
 }
 
 func (s *PriceService) UpdatePrices() {
 
+	if !MarketclosingWindow() {
+		fmt.Println("Market open, skipping price update")
+		return
+	}
+
 	stocks, err := s.StockRepo.GetAllStocks()
 	if err != nil {
 		fmt.Println("Error fetching stocks:", err)
 		return
 	}
+	today := time.Now().Format("2006-01-02")
 
 	for _, stock := range stocks {
+
+		check, err := s.StockRepo.PriceUpdateCheck(stock.ID, today)
+		if err != nil {
+			fmt.Println("Price check error:", err)
+			continue
+		}
+
+		if check {
+			fmt.Printf("Already updated: %s\n", stock.Symbol)
+			continue
+		}
 
 		url := fmt.Sprintf(
 			"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=%s&apikey=YOUR_API_KEY",
@@ -43,10 +60,8 @@ func (s *PriceService) UpdatePrices() {
 			continue
 		}
 
-		// ✅ Always close body safely
 		defer resp.Body.Close()
 
-		// ✅ Check API response status
 		if resp.StatusCode != http.StatusOK {
 			fmt.Println("Bad response for:", stock.Symbol)
 			continue
@@ -69,32 +84,27 @@ func (s *PriceService) UpdatePrices() {
 
 		for dateStr, values := range data.TimeSeries {
 
-			// ✅ Parse date
 			date, err := time.Parse("2006-01-02", dateStr)
 			if err != nil {
 				continue
 			}
 
-			// ✅ Parse close price
 			closePrice, err := strconv.ParseFloat(values["4. close"], 64)
 			if err != nil {
 				continue
 			}
 
-			// ✅ Insert history
 			err = s.StockRepo.UpdateHistory(stock.ID, closePrice, date)
 			if err != nil {
-				fmt.Println("History insert error:", err)
+				fmt.Println("History insert error")
 			}
 
-			// ✅ Track latest
 			if date.After(latestDate) {
 				latestDate = date
 				latestClose = closePrice
 			}
 		}
 
-		// ✅ Update latest stock price
 		if latestClose > 0 {
 			err = s.StockRepo.UpdateStockPrice(stock.ID, latestClose)
 			if err != nil {
@@ -102,9 +112,28 @@ func (s *PriceService) UpdatePrices() {
 			}
 		}
 
-		// ✅ Rate limit protection
 		time.Sleep(12 * time.Second)
 	}
 
-	fmt.Println("✅ Prices & History Updated")
+	fmt.Println("Prices & History Updated")
+	s.CronService.CreateLog("Price Update", "SUCCESS", "Prices and history updated successfully")
+
+}
+
+func MarketclosingWindow() bool {
+	now := time.Now()
+
+	loc, _ := time.LoadLocation("Asia/Kolkata")
+	now = now.In(loc)
+
+	weekday := now.Weekday()
+	hour := now.Hour()
+
+	if weekday == time.Saturday || weekday == time.Sunday {
+		return false
+	}
+	if hour >= 9 && hour <= 18 {
+		return false
+	}
+	return true
 }

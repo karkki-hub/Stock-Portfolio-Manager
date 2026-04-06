@@ -22,6 +22,10 @@ func main() {
 
 	db := database.NewMySQL(cfg)
 
+	cronrepo := repository.NewCronRepository(db)
+
+	cronservice := services.NewCronService(cronrepo)
+
 	userRepo := repository.NewUserRepository(db)
 
 	authService := services.NewAuthService(userRepo, cfg.JWTSecret)
@@ -32,11 +36,11 @@ func main() {
 
 	stockService := services.NewStockService(stockRepo, cfg.AlphaKey)
 
-	priceService := services.NewPriceService(stockRepo)
+	priceService := services.NewPriceService(stockRepo, cronservice)
 
 	cronManager := utilities.NewCronManager()
 
-	cronManager.AddJob("00 23 * * *", func() {
+	cronManager.AddJob("*/30 * * * *", func() {
 		priceService.UpdatePrices()
 	})
 
@@ -70,9 +74,9 @@ func main() {
 
 	reportService := services.NewReportService(reportRepo)
 
-	reportHandler := handlers.NewReportHandler(reportService, profileService)
+	reportHandler := handlers.NewReportHandler(reportService, profileService, cronservice)
 
-	cronManager.AddJob("33 12 * * *", func() {
+	cronManager.AddJob("0 0 * * *", func() {
 		reportHandler.DailyReport()
 	})
 

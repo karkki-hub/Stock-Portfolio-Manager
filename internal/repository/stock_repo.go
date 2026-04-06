@@ -115,3 +115,14 @@ func (r *StockRepository) UpdateHistory(stockID uint, price float64, date time.T
 	_, err := r.DB.Exec(query, stockID, price, date)
 	return err
 }
+
+func (r *StockRepository) PriceUpdateCheck(stockID uint, date string) (bool, error) {
+	query := `SELECT COUNT(*) FROM stock_price_history WHERE stock_id = ? AND price_date = ?`
+	row := r.DB.QueryRow(query, stockID, date)
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
