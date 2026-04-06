@@ -17,3 +17,7 @@ func NewReportService(r *repository.ReportRepository) *ReportService {
 func (s *ReportService) GetReport(userID uint) (*models.Report, error) {
 	return s.Repo.GetReportById(userID)
 }
+
+func (s *ReportService) LogReport(filename string, action string, status string) error {
+	return s.Repo.LogReport(filename, action, status)
+}

@@ -73,3 +73,9 @@ WHERE p.user_id = ?`
 	}
 	return report, nil
 }
+
+func (r *ReportRepository) LogReport(filename string, action string, status string) error {
+	query := `INSERT INTO reports (report_type, file_name, status) VALUES (?, ?, ?)`
+	_, err := r.DB.Exec(query, filename, action, status)
+	return err
+}

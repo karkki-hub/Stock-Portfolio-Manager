@@ -30,3 +30,7 @@ func (s *ProfileService) ChangePassword(userID uint, password string) error {
 
 	return s.Repo.ResetPassword(userID, hashedPassword)
 }
+
+func (s *ProfileService) GetAllUserIDs() ([]models.UserID, error) {
+	return s.Repo.GetAllUserId()
+}

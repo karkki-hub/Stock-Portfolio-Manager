@@ -8,3 +8,8 @@ type Profile struct {
 	Phone    string `json:"phone"`
 	Address  string `json:"address"`
 }
+
+type UserID struct {
+	ID   uint
+	Name string
+}

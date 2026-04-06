@@ -36,11 +36,9 @@ func main() {
 
 	cronManager := utilities.NewCronManager()
 
-	cronManager.AddJob("16 23 * * *", func() {
+	cronManager.AddJob("00 23 * * *", func() {
 		priceService.UpdatePrices()
 	})
-
-	cronManager.Start()
 
 	stockHandler := handlers.NewStockHandler(stockService)
 
@@ -72,7 +70,13 @@ func main() {
 
 	reportService := services.NewReportService(reportRepo)
 
-	reportHandler := handlers.NewReportHandler(reportService)
+	reportHandler := handlers.NewReportHandler(reportService, profileService)
+
+	cronManager.AddJob("33 12 * * *", func() {
+		reportHandler.DailyReport()
+	})
+
+	cronManager.Start()
 
 	routes.RegisterRoutes(e, authHandler, cfg.JWTSecret, stockHandler, watchHandler, txHandler, portfolioHandler, profileHandler, reportHandler)
 

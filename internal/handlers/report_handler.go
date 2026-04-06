@@ -1,24 +1,25 @@
 package handlers
 
 import (
-	"encoding/csv"
 	"net/http"
 	"os"
 
 	"fmt"
+	"time"
 
-	// "karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
+	"karkki-hub/Stock-Portfolio-Manager/internal/utilities"
 
 	"github.com/labstack/echo/v4"
 )
 
 type ReportHandler struct {
 	Service *services.ReportService
+	Profile *services.ProfileService
 }
 
-func NewReportHandler(s *services.ReportService) *ReportHandler {
-	return &ReportHandler{Service: s}
+func NewReportHandler(s *services.ReportService, p *services.ProfileService) *ReportHandler {
+	return &ReportHandler{Service: s, Profile: p}
 }
 
 func (h *ReportHandler) ExportReportCSV(c echo.Context) error {
@@ -32,71 +33,68 @@ func (h *ReportHandler) ExportReportCSV(c echo.Context) error {
 		})
 	}
 
-	filepath := "C:\\Users\\karkki\\Desktop\\reports\\report.csv"
+	// Set headers
+	c.Response().Header().Set("Content-Type", "text/csv")
+	c.Response().Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%d-report.csv", userID))
 
-	file, err := os.Create(filepath)
+	// Write directly to response
+	err = utilities.WriteReportCSV(c.Response(), report)
+	if err != nil {
+		err = h.Service.LogReport(fmt.Sprintf("%d-report.csv", userID), "download", "FAILED")
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+
+	err = h.Service.LogReport(fmt.Sprintf("%d-report.csv", userID), "download", "SUCCESS")
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": err.Error(),
 		})
 	}
-	defer file.Close()
 
-	// Set headers for download
-	c.Response().Header().Set("Content-Type", "text/csv")
-	c.Response().Header().Set("Content-Disposition", "attachment; filename=report.csv")
+	return nil
+}
 
-	writer := csv.NewWriter(file)
-	defer writer.Flush()
+func (h *ReportHandler) DailyReport() error {
 
-	writer.Write([]string{
-		"",
-		report.Name,
-		"",
-	})
-
-	// ✅ Header row
-	writer.Write([]string{
-		"Symbol",
-		"Stock Name",
-		"Quantity",
-		"Avg Buy Price",
-		"Current Price",
-		"Total Investment",
-		"Current Value",
-		"Profit/Loss",
-	})
-
-	// ✅ Data rows
-	for _, s := range report.StocksOwned {
-		row := []string{
-			s.Symbol,
-			s.StockName,
-			fmt.Sprintf("%.2f", s.Qty),
-			fmt.Sprintf("%.2f", s.AvgBuyPrice),
-			fmt.Sprintf("%.2f", s.CurrentPrice),
-			fmt.Sprintf("%.2f", s.TotalInvestment),
-			fmt.Sprintf("%.2f", s.CurrentValue),
-			fmt.Sprintf("%.2f", s.ProfitLoss),
-		}
-		writer.Write(row)
+	users, err := h.Profile.GetAllUserIDs()
+	if err != nil {
+		return err
 	}
 
-	writer.Write([]string{
-		"",
-	})
+	for _, user := range users {
 
-	// ✅ Total row (very important)
-	writer.Write([]string{
-		"TOTAL",
-		"",
-		"",
-		"",
-		"",
-		fmt.Sprintf("%.2f", report.TotalInvestment),
-		fmt.Sprintf("%.2f", report.TotCurrentValue),
-		fmt.Sprintf("%.2f", report.TotalProfitLoss),
-	})
+		report, err := h.Service.GetReport(user.ID)
+		if err != nil {
+			return err
+		}
+
+		filepath := fmt.Sprintf(
+			"C:\\Users\\karkki\\Desktop\\reports\\%d-%s-%s.csv",
+			user.ID,
+			user.Name,
+			time.Now().Format("2006-01-02"),
+		)
+
+		filename := fmt.Sprintf("%d-%s-%s.csv", user.ID, user.Name, time.Now().Format("2006-01-02"))
+		file, err := os.Create(filepath)
+		if err != nil {
+			return err
+		}
+
+		if err := utilities.WriteReportCSV(file, report); err != nil {
+			err = h.Service.LogReport(filename, "daily", "FAILED")
+			file.Close()
+			return err
+		}
+
+		err = h.Service.LogReport(filename, "daily", "SUCCESS")
+		if err != nil {
+			return err
+		}
+		file.Close()
+	}
 
 	return nil
 }
