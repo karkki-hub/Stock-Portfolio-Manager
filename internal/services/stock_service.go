@@ -25,7 +25,7 @@ func NewStockService(repo *repository.StockRepository, alphaKey string) *StockSe
 func (s *StockService) AddStock(symbol string, name string) error {
 
 	url := fmt.Sprintf(
-		"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=%s&apikey=%s",
+		"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=%s&apikey=%s",
 		symbol,
 		s.AlphaKey,
 	)
@@ -43,7 +43,8 @@ func (s *StockService) AddStock(symbol string, name string) error {
 	}
 
 	var check map[string]interface{}
-	json.Unmarshal(body, &check)
+	_ = json.Unmarshal(body, &check)
+
 	if msg, ok := check["Note"]; ok {
 		return fmt.Errorf("alphavantage rate limit: %v", msg)
 	}
@@ -51,32 +52,23 @@ func (s *StockService) AddStock(symbol string, name string) error {
 		return fmt.Errorf("alphavantage rate limit: %v", msg)
 	}
 
-	var result map[string]map[string]string
-	err = json.Unmarshal(body, &result)
-	if err != nil {
+	type TimeSeriesResponse struct {
+		TimeSeries map[string]map[string]string `json:"Time Series (Daily)"`
+	}
+
+	var data TimeSeriesResponse
+	if err := json.Unmarshal(body, &data); err != nil {
 		return err
 	}
 
-	quote, ok := result["Global Quote"]
-	if !ok || len(quote) == 0 {
-		return fmt.Errorf("no quote data for %s", symbol)
+	if data.TimeSeries == nil {
+		return fmt.Errorf("no time series data for %s", symbol)
 	}
 
-	price, err := strconv.ParseFloat(quote["05. price"], 64)
-	if err != nil {
-		return fmt.Errorf("invalid price format")
-	}
-
-	dateStr := quote["07. latest trading day"]
-
-	date, err := time.Parse("2006-01-02", dateStr)
-	if err != nil {
-		return fmt.Errorf("invalid date format")
-	}
 	stock := &models.Stock{
 		Symbol:    symbol,
 		StockName: name,
-		LastPrice: price,
+		LastPrice: 0,
 	}
 
 	err = s.Repo.Save(stock)
@@ -84,15 +76,44 @@ func (s *StockService) AddStock(symbol string, name string) error {
 		return err
 	}
 
-	var stockID uint
-
 	savedStock, err := s.Repo.GetBySymbol(symbol)
 	if err != nil {
 		return err
 	}
-	stockID = savedStock.ID
+	stockID := savedStock.ID
 
-	err = s.Repo.UpdateHistory(stockID, price, date)
+	var latestDate time.Time
+	var latestPrice float64
+
+	for dateStr, values := range data.TimeSeries {
+
+		date, err := time.Parse("2006-01-02", dateStr)
+		if err != nil {
+			continue
+		}
+
+		price, err := strconv.ParseFloat(values["4. close"], 64)
+		if err != nil {
+			continue
+		}
+
+		err = s.Repo.UpdateHistory(stockID, price, date)
+		if err != nil {
+			fmt.Println("History insert error:", err)
+			continue
+		}
+
+		if date.After(latestDate) {
+			latestDate = date
+			latestPrice = price
+		}
+	}
+
+	if latestPrice == 0 {
+		return fmt.Errorf("failed to extract latest price")
+	}
+
+	err = s.Repo.UpdateStockPrice(stockID, latestPrice)
 	if err != nil {
 		return err
 	}

@@ -76,7 +76,7 @@ func main() {
 
 	reportHandler := handlers.NewReportHandler(reportService, profileService, cronservice)
 
-	cronManager.AddJob("47 17 * * *", func() {
+	cronManager.AddJob("00 00 * * *", func() {
 		reportHandler.DailyReport()
 	})
 

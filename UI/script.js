@@ -195,6 +195,7 @@ function loadWatchlist(){
                 <button onclick="opentrade('BUY','${stock.symbol}',${stock.last_price})">Buy</button>
                 <button onclick="opentrade('SELL','${stock.symbol}',${stock.last_price})">Sell</button>
                 <button onclick="removeWatch('${stock.symbol}')">Remove</button>
+                <button onclick="showGraph('${stock.symbol}')">Graph</button>
             </td>
             `
 
@@ -358,7 +359,9 @@ function loadProfile() {
         }
     })
     .then(res => res.json())
-    .then(data => {
+    .then(response => {
+
+        const data = response.data
         console.log("profile", data)
 
         document.getElementById("profilename").value = data.name || ""
@@ -377,25 +380,25 @@ function updateProfile() {
 
     const token = localStorage.getItem("token")
 
-    const email = document.getElementById("profileEmail").value
+    const name = document.getElementById("profilename").value
     const phone = document.getElementById("profilePhone").value
     const address = document.getElementById("profileAddress").value
 
-    if (!email || !phone || !address) {
+    if (!name || !phone || !address) {
         document.getElementById("profileMsg").innerText = "All fields required"
         return
     }
 
-    fetch(API + "/api/profile", {
+    fetch(API + "/api/profile/update", {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
             "Authorization": "Bearer " + token
         },
         body: JSON.stringify({
-            email: email,
+            Name: name,
             phone: phone,
-            address: address
+            Address: address
         })
     })
     .then(res => res.json())
@@ -410,4 +413,155 @@ function updateProfile() {
 
 function goProfile(){
     window.location = "profile.html"
+}
+
+function downloadReport() {
+    const token = localStorage.getItem("token")
+
+    fetch(API + "/api/report", {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    })
+    .then(res => res.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = "portfolio_report.csv"
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+    })
+    .catch(err => {
+        console.error(err)
+        alert("Error downloading report")
+    })
+}
+
+
+let chartInstance = null
+
+function showGraph(symbol){
+
+    const token = localStorage.getItem("token")
+
+    fetch(API + "/api/watchlist/history/" + symbol, {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    })
+    .then(res => res.json())
+    .then(response => {
+
+        const data = response.data   // ✅ correct
+
+        if(!data || data.length === 0){
+            alert("No history available")
+            return
+        }
+
+        // ✅ Format dates properly
+        const labels = data.map(d => 
+            new Date(d.date).toLocaleDateString()
+        )
+
+        const prices = data.map(d => d.price)
+
+        document.getElementById("chartTitle").innerText = symbol + " Price History"
+        document.getElementById("chartModal").style.display = "block"
+
+        const ctx = document.getElementById("stockChart").getContext("2d")
+
+        if(chartInstance){
+            chartInstance.destroy()
+        }
+
+        chartInstance = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Price",
+                    data: prices,
+                    tension: 0.3   // smooth curve
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true
+                    }
+                }
+            }
+        })
+    })
+    .catch(err => {
+        console.error(err)
+        alert("Failed to load graph")
+    })
+}
+
+function closeChart(){
+    document.getElementById("chartModal").style.display = "none"
+    if(chartInstance){
+        chartInstance.destroy()
+        chartInstance = null
+    }
+}
+
+function openReset(){
+    document.getElementById("resetModal").style.display = "block"
+}
+
+function closeReset(){
+    document.getElementById("resetModal").style.display = "none"
+}
+
+function submitReset(){
+
+    const token = localStorage.getItem("token")
+
+    const oldpassword = document.getElementById("oldPass").value
+    const newpassword = document.getElementById("newPass").value
+    const reenterpassword = document.getElementById("rePass").value
+
+    if(!oldpassword || !newpassword || !reenterpassword){
+        document.getElementById("resetMsg").innerText = "All fields required"
+        return
+    }
+
+    if(newpassword !== reenterpassword){
+        document.getElementById("resetMsg").innerText = "Passwords do not match"
+        return
+    }
+
+    fetch(API + "/api/profile/reset_pswd", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+            oldpassword,
+            newpassword,
+            reenterpassword
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        document.getElementById("resetMsg").innerText = data.message
+
+        if(data.status === "success"){
+            setTimeout(() => {
+                closeReset()
+            }, 1500)
+        }
+    })
+    .catch(err => {
+        console.error(err)
+        document.getElementById("resetMsg").innerText = "Reset failed"
+    })
 }
