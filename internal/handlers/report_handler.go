@@ -1,17 +1,17 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"os"
-
-	"fmt"
+	"strings"
 	"time"
+
+	"github.com/labstack/echo/v4"
 
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
 	"karkki-hub/Stock-Portfolio-Manager/pkg/utilities"
-
-	"github.com/labstack/echo/v4"
 )
 
 type ReportHandler struct {
@@ -47,50 +47,84 @@ func (h *ReportHandler) ExportReportCSV(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
 	}
 
-	return c.JSON(http.StatusOK, models.SuccessResponse("report downloaded successfully", nil))
+	return nil
 }
 
 func (h *ReportHandler) DailyReport() error {
-
 	users, err := h.Profile.GetAllUserIDs()
 	if err != nil {
 		return err
 	}
 
-	for _, user := range users {
+	basepath := "reports"
+	if err := os.MkdirAll(basepath, os.ModePerm); err != nil {
+		return err
+	}
 
-		report, err := h.Service.GetReport(user.ID)
-		if err != nil {
-			return err
+	for _, user := range users {
+		var report *models.Report
+		var err error
+
+		// Retry fetching report 3 times
+		for attempt := 1; attempt <= 3; attempt++ {
+			report, err = h.Service.GetReport(user.ID)
+			if err == nil {
+				break
+			}
+			time.Sleep(2 * time.Second)
 		}
 
-		basepath := "reports"
+		// Prepare safe filename
+		filenameSafe := strings.ReplaceAll(user.Name, " ", "_")
+		filename := fmt.Sprintf("%d-%s-%s.csv", user.ID, filenameSafe, time.Now().Format("2006-01-02"))
+		filepath := fmt.Sprintf("%s/%s", basepath, filename)
 
-		_ = os.MkdirAll(basepath, os.ModePerm)
+		if err != nil {
+			h.Service.LogReport(filename, "daily", "FAILED")
+			h.Cron.CreateLog("Daily Report", "FAILED",
+				fmt.Sprintf("Failed to generate report for user %d after retries: %s", user.ID, err.Error()))
+			continue
+		}
 
-		filepath := fmt.Sprintf("%s/%d-%s-%s.csv", basepath, user.ID, user.Name, time.Now().Format("2006-01-02"))
-
-		filename := fmt.Sprintf("%d-%s-%s.csv", user.ID, user.Name, time.Now().Format("2006-01-02"))
 		file, err := os.Create(filepath)
 		if err != nil {
-			return err
-		}
-
-		if err := utilities.WriteReportCSV(file, report); err != nil {
 			h.Service.LogReport(filename, "daily", "FAILED")
-			h.Cron.CreateLog("Daily Report", "FAILED", fmt.Sprintf("Failed to generate report for user %d: %s", user.ID, err.Error()))
-			file.Close()
-			return err
+			h.Cron.CreateLog("Daily Report", "FAILED",
+				fmt.Sprintf("Failed to create file for user %d: %s", user.ID, err.Error()))
+			continue
+		}
+		defer file.Close()
+
+		// Retry writing CSV 3 times
+		for attempt := 1; attempt <= 3; attempt++ {
+			err = utilities.WriteReportCSV(file, report)
+			if err == nil {
+				break
+			} else if attempt == 3 {
+				h.Service.LogReport(filename, "daily", "FAILED")
+				h.Cron.CreateLog("Daily Report", "FAILED",
+					fmt.Sprintf("Failed to write report for user %d after retries: %s", user.ID, err.Error()))
+			} else {
+				time.Sleep(2 * time.Second)
+			}
 		}
 
-		err = h.Service.LogReport(filename, "daily", "SUCCESS")
-		if err != nil {
-			return err
+		if err == nil {
+			if logErr := h.Service.LogReport(filename, "daily", "SUCCESS"); logErr != nil {
+				h.Cron.CreateLog("Daily Report", "FAILED",
+					fmt.Sprintf("Failed to log report success for user %d: %s", user.ID, logErr.Error()))
+			}
 		}
-		file.Close()
 	}
 
 	h.Cron.CreateLog("Daily Report", "SUCCESS", "Daily reports generated successfully")
-
 	return nil
 }
+
+// for attempt := 1; attempt <= 3; attempt++ {
+//     report, err := h.Service.GetReport(user.ID)
+//     if err == nil {
+//         break
+//     }
+//     time.Sleep(2 * time.Second)
+// }

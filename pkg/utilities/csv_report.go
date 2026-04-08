@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"time"
 
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 )
@@ -12,7 +13,9 @@ func WriteReportCSV(w io.Writer, report *models.Report) error {
 	writer := csv.NewWriter(w)
 	defer writer.Flush()
 
-	if err := writer.Write([]string{"", "NAME:", report.Name, ""}); err != nil {
+	date := time.Now().Format("2006-01-02")
+
+	if err := writer.Write([]string{"NAME:", report.Name, "", "DATE:", date}); err != nil {
 		return err
 	}
 

@@ -2,7 +2,16 @@ const API = "http://localhost:8080"
 
 let tradetype = ""
 let tradesymbol = ""
-
+let watchlistData = [];
+let watchSortDirection = {};
+let currentWatchSortField = "";
+let chartInstance = null
+let stockData = [];     // store API data globally
+let sortDirection = {}; // track asc/desc per column
+let currentSortField = "";
+let transactionData = [];
+let transSortDirection = {};
+let currentTransSortField = "";
 console.log("js loaded");
 
 // ================= TRADE MODAL =================
@@ -178,29 +187,8 @@ function loadWatchlist(){
         const table = document.getElementById("watchlist")
         table.innerHTML = ""
 
-        const stocks = data.sort((a,b)=>
-            a.symbol.localeCompare(b.symbol)
-        )
-
-        stocks.forEach(stock => {
-
-            const tr = document.createElement("tr")
-
-            tr.innerHTML =
-            `
-            <td>${stock.symbol}</td>
-            <td>${stock.stock_name}</td>
-            <td>${stock.last_price}</td>
-            <td>
-                <button onclick="opentrade('BUY','${stock.symbol}',${stock.last_price})">Buy</button>
-                <button onclick="opentrade('SELL','${stock.symbol}',${stock.last_price})">Sell</button>
-                <button onclick="removeWatch('${stock.symbol}')">Remove</button>
-                <button onclick="showGraph('${stock.symbol}')">Graph</button>
-            </td>
-            `
-
-            table.appendChild(tr)
-        })
+        watchlistData = data;
+renderWatchlist();
     })
 }
 
@@ -254,30 +242,8 @@ function loadTransactions(){
             return
         }
 
-        const transactions = [...data].sort((a,b)=>
-            new Date(b.created_at) - new Date(a.created_at)
-        )
-
-        console.log("Transactions:", transactions)
-
-        transactions.forEach(tx => {
-
-            const tr = document.createElement("tr")
-
-        
-            tr.innerHTML = `
-                <td style="color:${tx.type === 'BUY' ? 'green' : 'red'}">
-                    ${tx.type || "N/A"}
-                </td>
-                <td>${tx.symbol || tx.stock_id || "N/A"}</td>
-                <td>${tx.quantity || 0}</td>
-                <td>${tx.price || 0}</td>
-                <td>${tx.total_amount || 0}</td>
-                <td>${tx.created_at ? formatDate(tx.created_at) : "N/A"}</td>
-            `
-
-            table.appendChild(tr)
-        })
+        transactionData = data ? [...data] : [];
+renderTransactions();
     })
     .catch(err => {
         console.error(err)
@@ -324,26 +290,11 @@ function loadPortfolio() {
         document.getElementById("currentValue").innerText = (data.tot_cur_investment || 0).toFixed(2)
         document.getElementById("totalPL").innerText = (data.total_profit_loss || 0).toFixed(2)
 
-        const table = document.getElementById("stockTable") // ✅ FIXED
-        table.innerHTML = "";
-
-        data.stocks.forEach(stock => {
-            const tr = document.createElement("tr")
-
-            tr.innerHTML = `
-                <td>${stock.symbol}</td>
-                <td>${stock.quantity}</td>
-                <td>${(stock.avg_buy_price || 0).toFixed(2)}</td>
-                <td>${(stock.current_price || 0).toFixed(2)}</td>
-                <td>${(stock.profit_loss || 0).toFixed(2)}</td>
-                <td style="color:${stock.profit_loss >= 0 ? 'green' : 'red'}">${stock.profit_loss >= 0 ? 'Profit' : 'Loss'}</td>
-            `
-
-            table.appendChild(tr)
+        stockData = data.stocks;  // store globally
+        renderTable();            // call render function
         })
 
-    })
-}
+    }
 
 function goPortfolio(){
     window.location = "portfolio.html"
@@ -438,9 +389,6 @@ function downloadReport() {
         alert("Error downloading report")
     })
 }
-
-
-let chartInstance = null
 
 function showGraph(symbol){
 
@@ -564,4 +512,204 @@ function submitReset(){
         console.error(err)
         document.getElementById("resetMsg").innerText = "Reset failed"
     })
+}
+
+function sortStocks(field) {
+
+    // toggle direction
+    sortDirection[field] = !sortDirection[field];
+    currentSortField = field;
+
+    // SORT DATA
+    stockData.sort((a, b) => {
+        let valA = a[field] ?? 0;
+        let valB = b[field] ?? 0;
+
+        if (typeof valA === "string") {
+            return sortDirection[field]
+                ? valA.localeCompare(valB)
+                : valB.localeCompare(valA);
+        }
+
+        return sortDirection[field]
+            ? valA - valB
+            : valB - valA;
+    });
+
+    updateArrows();   // 🔥 update arrows
+    renderTable();
+}
+
+function renderTable() {
+    const table = document.getElementById("stockTable");
+    table.innerHTML = "";
+
+    stockData.forEach(stock => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${stock.symbol}</td>
+            <td>${stock.quantity}</td>
+            <td>${(stock.avg_buy_price || 0).toFixed(2)}</td>
+            <td>${(stock.current_price || 0).toFixed(2)}</td>
+            <td>${(stock.profit_loss || 0).toFixed(2)}</td>
+            <td style="color:${stock.profit_loss >= 0 ? 'green' : 'red'}">
+                ${stock.profit_loss >= 0 ? 'Profit' : 'Loss'}
+            </td>
+        `;
+
+        table.appendChild(tr);
+    });
+}
+
+function updateArrows() {
+    // clear all arrows
+    document.querySelectorAll("th span").forEach(span => {
+        span.innerText = "";
+    });
+
+    // set arrow for active column
+    const arrow = document.getElementById("arrow-" + currentSortField);
+
+    if (arrow) {
+        arrow.innerText = sortDirection[currentSortField] ? " ↑" : " ↓";
+    }
+}
+
+function sortWatchlist(field) {
+
+    watchSortDirection[field] = !watchSortDirection[field];
+    currentWatchSortField = field;
+
+    watchlistData.sort((a, b) => {
+        let valA = a[field] ?? "";
+        let valB = b[field] ?? "";
+
+        // convert numbers if needed
+        if (!isNaN(valA)) valA = Number(valA);
+        if (!isNaN(valB)) valB = Number(valB);
+
+        if (typeof valA === "string") {
+            return watchSortDirection[field]
+                ? valA.localeCompare(valB)
+                : valB.localeCompare(valA);
+        }
+
+        return watchSortDirection[field]
+            ? valA - valB
+            : valB - valA;
+    });
+
+    updateWatchArrows();
+    renderWatchlist();
+}
+
+function renderWatchlist() {
+
+    const table = document.getElementById("watchlist");
+    table.innerHTML = "";
+
+    watchlistData.forEach(stock => {
+
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${stock.symbol}</td>
+            <td>${stock.stock_name}</td>
+            <td>${stock.last_price}</td>
+            <td>
+                <button onclick="opentrade('BUY','${stock.symbol}',${stock.last_price})">Buy</button>
+                <button onclick="opentrade('SELL','${stock.symbol}',${stock.last_price})">Sell</button>
+                <button onclick="removeWatch('${stock.symbol}')">Remove</button>
+                <button onclick="showGraph('${stock.symbol}')">Graph</button>
+            </td>
+        `;
+
+        table.appendChild(tr);
+    });
+}
+
+function updateWatchArrows() {
+
+    document.querySelectorAll("th span").forEach(span => {
+        span.innerText = "";
+    });
+
+    const arrow = document.getElementById("arrow-" + currentWatchSortField);
+
+    if (arrow) {
+        arrow.innerText = watchSortDirection[currentWatchSortField] ? " ↑" : " ↓";
+    }
+}
+
+function sortTransactions(field) {
+    transSortDirection[field] = !transSortDirection[field];
+    currentTransSortField = field;
+
+    transactionData.sort((a, b) => {
+        let valA = a[field] ?? "";
+        let valB = b[field] ?? "";
+
+        // Parse dates properly
+        if (field === "created_at") {
+            valA = new Date(valA);
+            valB = new Date(valB);
+        }
+
+        // Convert to numbers if numeric
+        if (!isNaN(valA) && field !== "created_at") valA = Number(valA);
+        if (!isNaN(valB) && field !== "created_at") valB = Number(valB);
+
+        if (typeof valA === "string") {
+            return transSortDirection[field]
+                ? valA.localeCompare(valB)
+                : valB.localeCompare(valA);
+        }
+
+        return transSortDirection[field]
+            ? valA - valB
+            : valB - valA;
+    });
+
+    updateTransactionArrows();
+    renderTransactions();
+}
+
+function renderTransactions() {
+    const table = document.getElementById("transactions");
+    table.innerHTML = "";
+
+    if (!transactionData.length) {
+        table.innerHTML = "<tr><td colspan='6'>No transactions</td></tr>";
+        return;
+    }
+
+    transactionData.forEach(tx => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td style="color:${tx.type === 'BUY' ? 'green' : 'red'}">
+                ${tx.type || "N/A"}
+            </td>
+            <td>${tx.symbol || tx.stock_id || "N/A"}</td>
+            <td>${tx.quantity || 0}</td>
+            <td>${tx.price || 0}</td>
+            <td>${tx.total_amount || 0}</td>
+            <td>${tx.created_at ? formatDate(tx.created_at) : "N/A"}</td>
+        `;
+
+        table.appendChild(tr);
+    });
+}
+
+function updateTransactionArrows() {
+    document.querySelectorAll("th span").forEach(span => {
+        span.innerText = "";
+    });
+
+    const arrow = document.getElementById("arrow-" + currentTransSortField);
+
+    if (arrow) {
+        arrow.innerText = transSortDirection[currentTransSortField] ? " ↑" : " ↓";
+    }
 }

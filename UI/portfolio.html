@@ -18,12 +18,22 @@
 <table border="1">
   <thead>
     <tr>
-      <th>Symbol</th>
-      <th>Qty</th>
-      <th>Avg Price</th>
-      <th>Current Price</th>
-      <th>Value Difference</th>
-      <th>P/L</th>
+      <th onclick="sortStocks('symbol')">
+  Symbol <span id="arrow-symbol"></span>
+</th>
+<th onclick="sortStocks('quantity')">
+  Quantity <span id="arrow-quantity"></span>
+</th>
+<th onclick="sortStocks('avg_buy_price')">
+  Avg Price <span id="arrow-avg_buy_price"></span>
+</th>
+<th onclick="sortStocks('current_price')">
+  Current Price <span id="arrow-current_price"></span>
+</th>
+<th onclick="sortStocks('profit_loss')">
+  Value Difference <span id="arrow-profit_loss"></span>
+</th>
+<th>P/L</th>
     </tr>
   </thead>
   <tbody id="stockTable"></tbody>

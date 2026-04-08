@@ -9,16 +9,16 @@
 
 <table border="2">
     <thead>
-        <tr>
-            <th>Type</th>
-            <th>Symbol</th>
-            <th>Quantity</th>
-            <th>Price</th>
-            <th>Total</th>
-            <th>Date</th>
-        </tr>
-    </thead>
-    <tbody id="transactions"></tbody>
+  <tr>
+    <th onclick="sortTransactions('type')">Type <span id="arrow-type"></span></th>
+    <th onclick="sortTransactions('symbol')">Symbol <span id="arrow-symbol"></span></th>
+    <th onclick="sortTransactions('quantity')">Quantity <span id="arrow-quantity"></span></th>
+    <th onclick="sortTransactions('price')">Price <span id="arrow-price"></span></th>
+    <th onclick="sortTransactions('total_amount')">Total <span id="arrow-total_amount"></span></th>
+    <th onclick="sortTransactions('created_at')">Date <span id="arrow-created_at"></span></th>
+  </tr>
+</thead>
+<tbody id="transactions"></tbody>
 </table>
 
 <br>
