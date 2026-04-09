@@ -289,31 +289,13 @@ function loadPortfolio() {
         document.getElementById("currentValue").innerText = (data.tot_cur_investment || 0).toFixed(2)
         document.getElementById("totalPL").innerText = (data.total_profit_loss || 0).toFixed(2)
 
-        const table = document.getElementById("stockTable")
-        table.innerHTML = ""
-
         if (!data || !data.stocks || data.stocks.length === 0) {
             table.innerHTML = "<tr><td colspan='6'>No portfolio data</td></tr>"
             return
         }
 
-        data.stocks.forEach(stock => {
-
-            const tr = document.createElement("tr")
-
-            tr.innerHTML = `
-                <td>${stock.symbol}</td>
-                <td>${stock.quantity}</td>
-                <td>${(stock.avg_buy_price || 0).toFixed(2)}</td>
-                <td>${(stock.current_value || 0).toFixed(2)}</td>
-                <td>${(stock.profit_loss || 0).toFixed(2)}</td>
-                <td style="color:${stock.profit_loss >= 0 ? 'green' : 'red'}">
-                    ${stock.profit_loss >= 0 ? 'Profit' : 'Loss'}
-                </td>
-            `
-
-            table.appendChild(tr)
-        })
+        stockData = data.stocks
+        renderPortfolioTable()
     })
 }
 
@@ -387,7 +369,7 @@ function goProfile(){
     window.location = "profile.html"
 }
 
-function downloadReport() {
+function downloaduserReport() {
     const token = localStorage.getItem("token")
 
     fetch(API + "/api/report", {
@@ -536,7 +518,6 @@ function submitReset(){
 }
 
 function sortStocks(field) {
-
     // toggle direction
     sortDirection[field] = !sortDirection[field];
     currentSortField = field;
@@ -547,21 +528,21 @@ function sortStocks(field) {
         let valB = b[field] ?? 0;
 
         if (typeof valA === "string") {
-            return sortDirection[field]
-                ? valA.localeCompare(valB)
-                : valB.localeCompare(valA);
-        }
+                return sortDirection[field]
+                    ? valA.localeCompare(valB)
+                    : valB.localeCompare(valA);
+            }
 
-        return sortDirection[field]
-            ? valA - valB
-            : valB - valA;
-    });
+            return sortDirection[field]
+                ? valA - valB
+                : valB - valA;
+        });
 
     updateArrows();   // 🔥 update arrows
-    renderTable();
+    renderPortfolioTable();
 }
 
-function renderTable() {
+function renderPortfolioTable() {
     const table = document.getElementById("stockTable");
     table.innerHTML = "";
 
@@ -829,11 +810,16 @@ let allReports = []
 
 document.addEventListener("DOMContentLoaded", () => {
     // Attach event listeners after DOM is ready
-    document.getElementById("filter-btn").addEventListener("click", applyDateFilter)
-    document.getElementById("reset-btn").addEventListener("click", resetDateFilter)
+    const fb = document.getElementById("filter-btn").addEventListener("click", applyDateFilter)
+    const rb =document.getElementById("reset-btn").addEventListener("click", resetDateFilter)
+
+    if (fb) console.log("Filter button found and listener attached")
+    if (rb) console.log("Reset button found and listener attached")
 
     // Load the reports after DOM exists
-    loadReports()
+    if(document.getElementById("reportsTable")) {
+        loadReports()
+    }
 })
 function loadReports() {
     const token = localStorage.getItem("token")
