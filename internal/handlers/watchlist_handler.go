@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -53,7 +52,6 @@ func (h *WatchlistHandler) Remove(c echo.Context) error {
 func (h *WatchlistHandler) Get(c echo.Context) error {
 
 	userID := getUserID(c)
-	fmt.Print(userID)
 	stocks, err := h.Service.Get(userID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))

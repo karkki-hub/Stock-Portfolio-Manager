@@ -720,45 +720,6 @@ function goReports(){
     window.location = "reports.html"
 }
 
-// function loadReports(){
-
-//     const token = localStorage.getItem("token")
-
-//     fetch(API + "/api/reports", {
-//         headers:{
-//             "Authorization":"Bearer " + token
-//         }
-//     })
-//     .then(res=>res.json())
-//     .then(response=>{
-
-//         const files = response.data
-//         const table = document.getElementById("reportsTable")
-//         table.innerHTML = ""
-
-//         files.forEach(file => {
-
-//     const tr = document.createElement("tr")
-
-//     tr.innerHTML = `
-//         <td>${file[0]}</td>
-//         <td>${file[1]}</td>
-//         <td>
-//             <button>Download</button>
-//         </td>
-//     `
-
-//     const btn = tr.querySelector("button")
-//     btn.addEventListener("click", () => {
-//         downloadReport(file[0])
-//     })
-
-//     table.appendChild(tr)
-// })
-//     })
-// }
-
-
 function downloadReport(filename) {
     const token = localStorage.getItem("token")
 
@@ -809,17 +770,26 @@ let currentSort = { column: null, asc: true }
 let allReports = []
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Attach event listeners after DOM is ready
-    const fb = document.getElementById("filter-btn").addEventListener("click", applyDateFilter)
-    const rb =document.getElementById("reset-btn").addEventListener("click", resetDateFilter)
 
-    if (fb) console.log("Filter button found and listener attached")
-    if (rb) console.log("Reset button found and listener attached")
+    console.log("DOM loaded");
 
-    // Load the reports after DOM exists
-    if(document.getElementById("reportsTable")) {
+    // ✅ REPORTS PAGE
+    if (document.getElementById("reportsTable")) {
+
+        const filterBtn = document.getElementById("filter-btn")
+        const resetBtn = document.getElementById("reset-btn")
+
+        if (filterBtn) {
+            filterBtn.addEventListener("click", applyDateFilter)
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener("click", resetDateFilter)
+        }
+
         loadReports()
     }
+
 })
 function loadReports() {
     const token = localStorage.getItem("token")
