@@ -369,33 +369,6 @@ function goProfile(){
     window.location = "profile.html"
 }
 
-// function downloaduserReport() {
-//     const token = localStorage.getItem("token")
-
-//     fetch(API + "/api/report", {
-//         headers: {
-//             "Authorization": "Bearer " + token
-//         }
-//     })
-//     .then(res => res.blob())
-//     .then(blob => {
-//         const url = window.URL.createObjectURL(blob)
-//         const a = document.createElement("a")
-//         const today = new Date().toISOString().split("T")[0]
-//         const filename = `portfolio_report_${today}.csv`
-//         a.href = url
-//         console.log("Downloading report from:", a)
-//         a.download = filename
-//         document.body.appendChild(a)
-//         a.click()
-//         window.URL.revokeObjectURL(url)
-//     })
-//     .catch(err => {
-//         console.error(err)
-//         alert("Error downloading report")
-//     })
-// }
-
 function downloaduserReport() {
     const token = localStorage.getItem("token")
 
