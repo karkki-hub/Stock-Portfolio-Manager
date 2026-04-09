@@ -369,6 +369,33 @@ function goProfile(){
     window.location = "profile.html"
 }
 
+// function downloaduserReport() {
+//     const token = localStorage.getItem("token")
+
+//     fetch(API + "/api/report", {
+//         headers: {
+//             "Authorization": "Bearer " + token
+//         }
+//     })
+//     .then(res => res.blob())
+//     .then(blob => {
+//         const url = window.URL.createObjectURL(blob)
+//         const a = document.createElement("a")
+//         const today = new Date().toISOString().split("T")[0]
+//         const filename = `portfolio_report_${today}.csv`
+//         a.href = url
+//         console.log("Downloading report from:", a)
+//         a.download = filename
+//         document.body.appendChild(a)
+//         a.click()
+//         window.URL.revokeObjectURL(url)
+//     })
+//     .catch(err => {
+//         console.error(err)
+//         alert("Error downloading report")
+//     })
+// }
+
 function downloaduserReport() {
     const token = localStorage.getItem("token")
 
@@ -377,14 +404,38 @@ function downloaduserReport() {
             "Authorization": "Bearer " + token
         }
     })
-    .then(res => res.blob())
-    .then(blob => {
+    .then(res => {
+        if (!res.ok) {
+            throw new Error("Failed to fetch report")
+        }
+        return res.blob()
+    })
+    .then(async (blob) => {
+        const text = await blob.text()
+
+        // 🧠 Extract from first line
+        const firstLine = text.split("\n")[0]
+        const parts = firstLine.split(",")
+
+        // Expected: ["NAME:", "jon", "", "DATE:", "2026-04-09"]
+        let username = parts[1] || "user"
+        let date = parts[4] || new Date().toISOString().split("T")[0]
+
+        // sanitize username
+        const safeUsername = username.replace(/[^a-z0-9]/gi, "_").toLowerCase()
+
+        const filename = `report_${safeUsername}_${date}.csv`
+
+        // 🔽 Download
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement("a")
         a.href = url
-        a.download = "portfolio_report.csv"
+        a.download = filename
+
         document.body.appendChild(a)
         a.click()
+        document.body.removeChild(a)
+
         window.URL.revokeObjectURL(url)
     })
     .catch(err => {
