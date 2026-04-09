@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"fmt"
+	"time"
+
 	"database/sql"
 
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
@@ -76,6 +79,29 @@ WHERE p.user_id = ?`
 
 func (r *ReportRepository) LogReport(filename string, action string, status string) error {
 	query := `INSERT INTO reports (report_type, file_name, status) VALUES (?, ?, ?)`
-	_, err := r.DB.Exec(query, filename, action, status)
+	_, err := r.DB.Exec(query, action, filename, status)
 	return err
+}
+
+func (r *ReportRepository) ListReports(userID uint) ([][]string, error) {
+	query := `SELECT file_name,generated_at FROM reports WHERE report_type = 'daily' AND file_name LIKE ?`
+	rows, err := r.DB.Query(query, fmt.Sprintf("%d-%%", userID))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var files [][]string
+	for rows.Next() {
+		var file string
+		var generatedAt time.Time
+
+		if err := rows.Scan(&file, &generatedAt); err != nil {
+			return nil, err
+		}
+
+		files = append(files, []string{file, generatedAt.Format("2006-01-02")}) // or format with date if needed
+	}
+
+	return files, nil
 }

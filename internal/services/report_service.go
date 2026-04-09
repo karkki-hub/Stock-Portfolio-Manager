@@ -20,3 +20,7 @@ func (s *ReportService) GetReport(userID uint) (*models.Report, error) {
 func (s *ReportService) LogReport(filename string, action string, status string) error {
 	return s.Repo.LogReport(filename, action, status)
 }
+
+func (s *ReportService) ListReports(userID uint) ([][]string, error) {
+	return s.Repo.ListReports(userID)
+}

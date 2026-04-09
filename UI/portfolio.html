@@ -39,9 +39,12 @@
   <tbody id="stockTable"></tbody>
 </table>
 <button onclick="window.location='watchlist.html'">Back to Watchlist</button>
+<button onclick="goReports()">Reports</button>
 <script src="script.js"></script>
 <script>
-    loadPortfolio()
+document.addEventListener('DOMContentLoaded', () => {
+    loadPortfolio();
+});
 </script>
 </body>
 </html>

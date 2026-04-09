@@ -713,3 +713,211 @@ function updateTransactionArrows() {
         arrow.innerText = transSortDirection[currentTransSortField] ? " ↑" : " ↓";
     }
 }
+
+function goReports(){
+    window.location = "reports.html"
+}
+
+// function loadReports(){
+
+//     const token = localStorage.getItem("token")
+
+//     fetch(API + "/api/reports", {
+//         headers:{
+//             "Authorization":"Bearer " + token
+//         }
+//     })
+//     .then(res=>res.json())
+//     .then(response=>{
+
+//         const files = response.data
+//         const table = document.getElementById("reportsTable")
+//         table.innerHTML = ""
+
+//         files.forEach(file => {
+
+//     const tr = document.createElement("tr")
+
+//     tr.innerHTML = `
+//         <td>${file[0]}</td>
+//         <td>${file[1]}</td>
+//         <td>
+//             <button>Download</button>
+//         </td>
+//     `
+
+//     const btn = tr.querySelector("button")
+//     btn.addEventListener("click", () => {
+//         downloadReport(file[0])
+//     })
+
+//     table.appendChild(tr)
+// })
+//     })
+// }
+
+
+function downloadReport(filename) {
+    const token = localStorage.getItem("token")
+
+    console.log("Downloading:", filename)
+    console.log("Token:", token)
+
+    fetch(API + "/api/reports/" + filename, {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    })
+    .then(res => {
+        console.log("Status:", res.status)
+
+        if (!res.ok) {
+            return res.text().then(text => {
+                console.error("Server error:", text)
+                throw new Error(text)
+            })
+        }
+
+        return res.blob()
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob)
+
+        const a = document.createElement("a")
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+
+        window.URL.revokeObjectURL(url)
+    })
+    .catch(err => {
+        console.error("Download error:", err)
+        alert("Download failed: " + err.message)
+    })
+}
+
+function goWatchlist(){
+    window.location = "watchlist.html"
+}
+
+let currentSort = { column: null, asc: true }
+
+let allReports = []
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Attach event listeners after DOM is ready
+    document.getElementById("filter-btn").addEventListener("click", applyDateFilter)
+    document.getElementById("reset-btn").addEventListener("click", resetDateFilter)
+
+    // Load the reports after DOM exists
+    loadReports()
+})
+function loadReports() {
+    const token = localStorage.getItem("token")
+    if (!token) return alert("Please login again")
+
+    fetch(API + "/api/reports", {
+        headers: { "Authorization": "Bearer " + token }
+    })
+    .then(res => res.json())
+    .then(response => {
+        allReports = response.data
+        renderTable(allReports)
+    })
+    .catch(err => {
+        console.error(err)
+        alert("Failed to load reports")
+    })
+}
+
+function renderTable(files) {
+    const table = document.getElementById("reportsTable")
+    table.innerHTML = ""
+
+    // Header row with clickable sorting
+    const header = document.createElement("tr")
+    const columns = ["File Name", "Date", "Action"]
+    columns.forEach((col, index) => {
+        const th = document.createElement("th")
+        th.textContent = col
+        if (col !== "Action") { // make sortable
+            th.style.cursor = "pointer"
+            th.addEventListener("click", () => {
+                sortTable(files, index)
+                renderTable(files)
+            })
+
+            // add arrow indicator
+            if (currentSort.column === index) {
+                th.textContent += currentSort.asc ? " ▲" : " ▼"
+            }
+        }
+        header.appendChild(th)
+    })
+    table.appendChild(header)
+
+    // Data rows
+    files.forEach(file => {
+        const tr = document.createElement("tr")
+        tr.innerHTML = `
+            <td>${file[0]}</td>
+            <td>${file[1]}</td>
+            <td><button>Download</button></td>
+        `
+        const btn = tr.querySelector("button")
+        btn.addEventListener("click", () => downloadReport(file[0]))
+        table.appendChild(tr)
+    })
+}
+
+function sortTable(files, columnIndex) {
+    if (currentSort.column === columnIndex) {
+        currentSort.asc = !currentSort.asc // toggle asc/desc
+    } else {
+        currentSort.column = columnIndex
+        currentSort.asc = true
+    }
+
+    files.sort((a, b) => {
+        let valA = a[columnIndex]
+        let valB = b[columnIndex]
+
+        // Detect if column is date (column 1)
+        if (columnIndex === 1) {
+            return currentSort.asc
+                ? new Date(valA) - new Date(valB)
+                : new Date(valB) - new Date(valA)
+        }
+
+        // Default: string comparison
+        return currentSort.asc
+            ? valA.localeCompare(valB)
+            : valB.localeCompare(valA)
+    })
+}
+
+function applyDateFilter() {
+    const from = document.getElementById("date-from").value
+    const to = document.getElementById("date-to").value
+
+    const filtered = allReports.filter(file => {
+        const reportDate = new Date(file[1])
+
+        if (from && reportDate < new Date(from)) return false
+        if (to && reportDate > new Date(to)) return false
+
+        return true
+    })
+
+    renderTable(filtered)
+}
+
+// Reset filter
+function resetDateFilter() {
+    document.getElementById("date-from").value = ""
+    document.getElementById("date-to").value = ""
+    renderTable(allReports)
+}
+

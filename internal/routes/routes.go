@@ -45,4 +45,7 @@ func RegisterRoutes(e *echo.Echo,
 	api.POST("/profile/reset_pswd", profileHandler.Reset)
 
 	api.GET("/report", reportHandler.ExportReportCSV)
+
+	api.GET("/reports", reportHandler.ListReports)
+	api.GET("/reports/:filename", reportHandler.DownloadReport)
 }

@@ -121,10 +121,53 @@ func (h *ReportHandler) DailyReport() error {
 	return nil
 }
 
-// for attempt := 1; attempt <= 3; attempt++ {
-//     report, err := h.Service.GetReport(user.ID)
-//     if err == nil {
-//         break
-//     }
-//     time.Sleep(2 * time.Second)
+// func (h *ReportHandler) ListReports(c echo.Context) error {
+// 	userID := getUserID(c)
+// 	basepath := "reports"
+
+// 	files, err := os.ReadDir(basepath)
+// 	if err != nil {
+// 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
+// 	}
+
+// 	var result []string
+
+// 	for _, file := range files {
+// 		if strings.HasPrefix(file.Name(), fmt.Sprintf("%d-", userID)) {
+// 			result = append(result, file.Name())
+// 		}
+// 	}
+
+// 	return c.JSON(http.StatusOK, models.SuccessResponse("reports fetched", result))
 // }
+
+func (h *ReportHandler) DownloadReport(c echo.Context) error {
+
+	filename := c.Param("filename")
+
+	basepath := "reports"
+	filepath := fmt.Sprintf("%s/%s", basepath, filename)
+
+	// 🔒 security: prevent ../ attacks
+	if strings.Contains(filename, "..") {
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse("invalid filename"))
+	}
+
+	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+		return c.JSON(http.StatusNotFound, models.ErrorResponse("file not found"))
+	}
+
+	return c.Attachment(filepath, filename)
+}
+
+func (h *ReportHandler) ListReports(c echo.Context) error {
+	userID := getUserID(c)
+
+	var result [][]string
+	result, err := h.Service.ListReports(userID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, models.SuccessResponse("reports fetched", result))
+}
