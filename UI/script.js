@@ -271,8 +271,6 @@ function goregister(){
 
 function loadPortfolio() {
 
-    console.log("Function called")
-
     const token = localStorage.getItem("token")
 
     fetch(API + "/api/portfolio", {
@@ -282,19 +280,42 @@ function loadPortfolio() {
     })
     .then(res => res.json())
     .then(response => {
+
         const data = response.data
 
-        console.log("DATA:", data)
+        console.log("PORTFOLIO:", data)
 
         document.getElementById("totalInvestment").innerText = (data.tot_investment || 0).toFixed(2)
         document.getElementById("currentValue").innerText = (data.tot_cur_investment || 0).toFixed(2)
         document.getElementById("totalPL").innerText = (data.total_profit_loss || 0).toFixed(2)
 
-        stockData = data.stocks;  // store globally
-        renderTable();            // call render function
-        })
+        const table = document.getElementById("stockTable")
+        table.innerHTML = ""
 
-    }
+        if (!data || !data.stocks || data.stocks.length === 0) {
+            table.innerHTML = "<tr><td colspan='6'>No portfolio data</td></tr>"
+            return
+        }
+
+        data.stocks.forEach(stock => {
+
+            const tr = document.createElement("tr")
+
+            tr.innerHTML = `
+                <td>${stock.symbol}</td>
+                <td>${stock.quantity}</td>
+                <td>${(stock.avg_buy_price || 0).toFixed(2)}</td>
+                <td>${(stock.current_value || 0).toFixed(2)}</td>
+                <td>${(stock.profit_loss || 0).toFixed(2)}</td>
+                <td style="color:${stock.profit_loss >= 0 ? 'green' : 'red'}">
+                    ${stock.profit_loss >= 0 ? 'Profit' : 'Loss'}
+                </td>
+            `
+
+            table.appendChild(tr)
+        })
+    })
+}
 
 function goPortfolio(){
     window.location = "portfolio.html"
