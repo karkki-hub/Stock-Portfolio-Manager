@@ -2,16 +2,16 @@ package utilities
 
 import "golang.org/x/crypto/bcrypt"
 
-func HashPassword(password string) (string, error) {
+func HashPassword(password string) (string, error) { // Hash the password using bcrypt
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err
 }
 
-func CheckPasswordHash(password, hash string) error {
+func CheckPasswordHash(password, hash string) error { // Compare the provided password with the stored hash
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
 
-func IsValidPassword(password string) bool {
+func IsValidPassword(password string) bool { // Validate password strength (at least 8 characters, contains uppercase, lowercase, and digit)
 	if len(password) < 8 {
 		return false
 	}

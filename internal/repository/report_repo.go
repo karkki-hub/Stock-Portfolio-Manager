@@ -39,7 +39,7 @@ WHERE p.user_id = ?`
 	var stocks []models.UserReport
 	var totalInvestment, totalCurrentValue float64
 
-	for rows.Next() {
+	for rows.Next() { // Iterate through each stock in the portfolio
 		var stock models.UserReport
 		err := rows.Scan(
 			&stock.Symbol,
@@ -52,6 +52,9 @@ WHERE p.user_id = ?`
 		if err != nil {
 			return nil, err
 		}
+
+		// Calculate current value and profit/loss for each stock
+
 		stock.CurrentValue = stock.Qty * stock.CurrentPrice
 		stock.ProfitLoss = stock.CurrentValue - stock.TotalInvestment
 		stocks = append(stocks, stock)

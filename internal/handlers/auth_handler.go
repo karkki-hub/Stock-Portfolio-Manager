@@ -38,20 +38,20 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse("invalid request"))
 	}
 
-	if req.Email == "" || req.Password == "" || req.Name == "" {
+	if req.Email == "" || req.Password == "" || req.Name == "" { // Validate required fields must not be empty
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse("email, password, and name are required"))
 	}
 
-	if !utilities.IsValidEmail(req.Email) {
+	if !utilities.IsValidEmail(req.Email) { // Validate email format
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse("invalid email format"))
 	}
 
-	if !utilities.IsValidPassword(req.Password) {
+	if !utilities.IsValidPassword(req.Password) { // Validate password strength
 		return c.JSON(http.StatusBadRequest,
 			models.ErrorResponse("Password must be at least 8 characters long and contain at least one uppercase and one lowercase letter and a special character"))
 	}
 
-	if len(req.Phone) != 10 {
+	if len(req.Phone) != 10 { // Validate phone number length
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse("phone number must be 10 digits"))
 	}
 

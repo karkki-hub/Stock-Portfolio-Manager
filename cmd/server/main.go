@@ -40,6 +40,8 @@ func main() {
 
 	cronManager := utilities.NewCronManager()
 
+	// Update prices every 30 minutes
+
 	cronManager.AddJob("*/30 * * * *", func() {
 		priceService.UpdatePrices()
 	})
@@ -75,6 +77,8 @@ func main() {
 	reportService := services.NewReportService(reportRepo)
 
 	reportHandler := handlers.NewReportHandler(reportService, profileService, cronservice)
+
+	// Schedule daily report generation at midnight
 
 	cronManager.AddJob("00 00 * * *", func() {
 		reportHandler.DailyReport()

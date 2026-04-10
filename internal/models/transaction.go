@@ -3,9 +3,9 @@ package models
 import "time"
 
 type Transaction struct {
-	ID        uint      `json:"-"`
-	UserID    uint      `json:"-"`
-	StockID   uint      `json:"-"`
+	ID        uint      `json:"-"` // Exclude ID from JSON responses
+	UserID    uint      `json:"-"` // Exclude UserID from JSON responses
+	StockID   uint      `json:"-"` // Exclude StockID from JSON responses
 	Symbol    string    `json:"symbol"`
 	Type      string    `json:"type"`
 	Quantity  float64   `json:"quantity"`

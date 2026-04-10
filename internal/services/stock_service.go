@@ -24,13 +24,13 @@ func NewStockService(repo *repository.StockRepository, alphaKey string) *StockSe
 
 func (s *StockService) AddStock(symbol string, name string) error {
 
-	url := fmt.Sprintf(
+	url := fmt.Sprintf( // Fetch daily time series data for the stock from Alpha Vantage API
 		"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=%s&apikey=%s",
 		symbol,
 		s.AlphaKey,
 	)
 
-	client := http.Client{Timeout: 10 * time.Second}
+	client := http.Client{Timeout: 10 * time.Second} // Create an HTTP client with a timeout to avoid hanging requests
 	resp, err := client.Get(url)
 	if err != nil {
 		return err
@@ -85,7 +85,7 @@ func (s *StockService) AddStock(symbol string, name string) error {
 	var latestDate time.Time
 	var latestPrice float64
 
-	for dateStr, values := range data.TimeSeries {
+	for dateStr, values := range data.TimeSeries { // Iterate through the time series data and update history and current price
 
 		date, err := time.Parse("2006-01-02", dateStr)
 		if err != nil {
@@ -124,13 +124,13 @@ func (s *StockService) AddStock(symbol string, name string) error {
 func (s *StockService) GetStockName(keyword string) ([]models.StockDetails, error) {
 	time.Sleep(1 * time.Second)
 
-	url := fmt.Sprintf(
+	url := fmt.Sprintf( // Search for stocks matching the keyword using Alpha Vantage API
 		"https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=%s&apikey=%s",
 		keyword,
 		s.AlphaKey,
 	)
 
-	client := http.Client{
+	client := http.Client{ // Create an HTTP client with a timeout to avoid hanging requests
 		Timeout: 10 * time.Second,
 	}
 
@@ -180,7 +180,7 @@ func (s *StockService) GetStockName(keyword string) ([]models.StockDetails, erro
 }
 
 func (s *StockService) SearchStocksByKeyword(keyword string) ([]models.StockDetails, error) {
-	if len(keyword) < 3 {
+	if len(keyword) < 3 { // Validate that the keyword is at least 3 characters long to avoid unnecessary API calls
 		return nil, fmt.Errorf("keyword must be at least 3 characters")
 	}
 	stock, err := s.Repo.SearchByKeyword(keyword)

@@ -8,7 +8,7 @@ type User struct {
 	Email     string    `json:"email"`
 	Phone     string    `json:"phone"`
 	Address   string    `json:"address"`
-	Password  string    `json:"-"`
+	Password  string    `json:"-"` // Exclude password from JSON responses
 	APIToken  string    `json:"api_token"`
 	CreatedAt time.Time `json:"created_at"`
 }

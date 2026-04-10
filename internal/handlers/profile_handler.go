@@ -43,7 +43,7 @@ func (h *ProfileHandler) Update(c echo.Context) error {
 			models.ErrorResponse("Invalid request body"))
 	}
 
-	if req.Name == "" || req.Address == "" || req.Phone == "" {
+	if req.Name == "" || req.Address == "" || req.Phone == "" { // Validate all fields are provided
 		return c.JSON(http.StatusBadRequest,
 			models.ErrorResponse("all fields are required"))
 	}
@@ -73,12 +73,12 @@ func (h *ProfileHandler) Reset(c echo.Context) error {
 			models.ErrorResponse("Invalid request body"))
 	}
 
-	if !utilities.IsValidPassword(req.NewPassword) {
+	if !utilities.IsValidPassword(req.NewPassword) { // Validate new password strength
 		return c.JSON(http.StatusBadRequest,
 			models.ErrorResponse("Password must be at least 8 characters long and contain at least one uppercase and one lowercase letter and a special character"))
 	}
 
-	if req.NewPassword != req.ReEnterPassword {
+	if req.NewPassword != req.ReEnterPassword { // Validate new password and re-entered password match
 		return c.JSON(http.StatusBadRequest,
 			models.ErrorResponse("Re-entered password doesn't match"))
 	}
@@ -91,12 +91,12 @@ func (h *ProfileHandler) Reset(c echo.Context) error {
 			models.ErrorResponse(err.Error()))
 	}
 
-	if err := utilities.CheckPasswordHash(req.OldPassword, storedHash); err != nil {
+	if err := utilities.CheckPasswordHash(req.OldPassword, storedHash); err != nil { // Validate old password is correct
 		return c.JSON(http.StatusUnauthorized,
 			models.ErrorResponse("Old password is incorrect"))
 	}
 
-	if err := utilities.CheckPasswordHash(req.NewPassword, storedHash); err == nil {
+	if err := utilities.CheckPasswordHash(req.NewPassword, storedHash); err == nil { // Validate new password is not the same as old password
 		return c.JSON(http.StatusUnauthorized,
 			models.ErrorResponse("Reusing the old password not allowed"))
 	}

@@ -9,7 +9,7 @@ import (
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 )
 
-func WriteReportCSV(w io.Writer, report *models.Report) error {
+func WriteReportCSV(w io.Writer, report *models.Report) error { // Write the report data to the provided writer in CSV format
 	writer := csv.NewWriter(w)
 	defer writer.Flush()
 

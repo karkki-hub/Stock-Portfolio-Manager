@@ -915,10 +915,9 @@ function applyDateFilter() {
     renderTable(filtered)
 }
 
-// Reset filter
+//Reset filter
 function resetDateFilter() {
     document.getElementById("date-from").value = ""
     document.getElementById("date-to").value = ""
     renderTable(allReports)
 }
-

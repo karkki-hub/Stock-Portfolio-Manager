@@ -34,15 +34,15 @@ func (h *ReportHandler) ExportReportCSV(c echo.Context) error {
 	}
 
 	c.Response().Header().Set("Content-Type", "text/csv")
-	c.Response().Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%d-report.csv", userID))
+	c.Response().Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%d-report.csv", userID)) // Set filename to include user ID for better organization
 
 	err = utilities.WriteReportCSV(c.Response(), report)
 	if err != nil {
-		err = h.Service.LogReport(fmt.Sprintf("%d-report.csv", userID), "download", "FAILED")
+		err = h.Service.LogReport(fmt.Sprintf("%d-report.csv", userID), "download", "FAILED") // Log failed download attempt with user ID in filename for better tracking
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
 	}
 
-	err = h.Service.LogReport(fmt.Sprintf("%d-report.csv", userID), "download", "SUCCESS")
+	err = h.Service.LogReport(fmt.Sprintf("%d-report.csv", userID), "download", "SUCCESS") // Log successful download with user ID in filename for better tracking
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
 	}
@@ -57,7 +57,7 @@ func (h *ReportHandler) DailyReport() error {
 	}
 
 	basepath := "reports"
-	if err := os.MkdirAll(basepath, os.ModePerm); err != nil {
+	if err := os.MkdirAll(basepath, os.ModePerm); err != nil { // Ensure reports directory exists, create if not
 		return err
 	}
 
@@ -79,7 +79,7 @@ func (h *ReportHandler) DailyReport() error {
 		filename := fmt.Sprintf("%d-%s-%s.csv", user.ID, filenameSafe, time.Now().Format("2006-01-02"))
 		filepath := fmt.Sprintf("%s/%s", basepath, filename)
 
-		if err != nil {
+		if err != nil { // If still failing after retries, log failure and continue to next user
 			h.Service.LogReport(filename, "daily", "FAILED")
 			h.Cron.CreateLog("Daily Report", "FAILED",
 				fmt.Sprintf("Failed to generate report for user %d after retries: %s", user.ID, err.Error()))
@@ -87,7 +87,7 @@ func (h *ReportHandler) DailyReport() error {
 		}
 
 		file, err := os.Create(filepath)
-		if err != nil {
+		if err != nil { // If file creation fails, log failure and continue to next user
 			h.Service.LogReport(filename, "daily", "FAILED")
 			h.Cron.CreateLog("Daily Report", "FAILED",
 				fmt.Sprintf("Failed to create file for user %d: %s", user.ID, err.Error()))
@@ -121,26 +121,6 @@ func (h *ReportHandler) DailyReport() error {
 	return nil
 }
 
-// func (h *ReportHandler) ListReports(c echo.Context) error {
-// 	userID := getUserID(c)
-// 	basepath := "reports"
-
-// 	files, err := os.ReadDir(basepath)
-// 	if err != nil {
-// 		return c.JSON(http.StatusInternalServerError, models.ErrorResponse(err.Error()))
-// 	}
-
-// 	var result []string
-
-// 	for _, file := range files {
-// 		if strings.HasPrefix(file.Name(), fmt.Sprintf("%d-", userID)) {
-// 			result = append(result, file.Name())
-// 		}
-// 	}
-
-// 	return c.JSON(http.StatusOK, models.SuccessResponse("reports fetched", result))
-// }
-
 func (h *ReportHandler) DownloadReport(c echo.Context) error {
 
 	filename := c.Param("filename")
@@ -148,7 +128,6 @@ func (h *ReportHandler) DownloadReport(c echo.Context) error {
 	basepath := "reports"
 	filepath := fmt.Sprintf("%s/%s", basepath, filename)
 
-	// 🔒 security: prevent ../ attacks
 	if strings.Contains(filename, "..") {
 		return c.JSON(http.StatusBadRequest, models.ErrorResponse("invalid filename"))
 	}

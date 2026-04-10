@@ -23,7 +23,7 @@ func (s *ProfileService) ChangeProfile(userID uint, phone string, name string, a
 }
 
 func (s *ProfileService) ChangePassword(userID uint, password string) error {
-	hashedPassword, err := utilities.HashPassword(password)
+	hashedPassword, err := utilities.HashPassword(password) // Hash the new password before storing it in the database
 	if err != nil {
 		return err
 	}

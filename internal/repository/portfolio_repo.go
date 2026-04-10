@@ -102,6 +102,8 @@ WHERE p.user_id = ?`
 			return nil, err
 		}
 
+		// Calculate current value and profit/loss for each stock
+
 		p.CurrentValue = utilities.RoundUp(p.CurrentPrice * p.Quantity)
 		p.ProfitLoss = utilities.RoundUp(p.CurrentValue - p.TotalInvest)
 

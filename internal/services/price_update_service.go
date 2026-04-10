@@ -24,7 +24,7 @@ type TimeSeriesResponse struct {
 
 func (s *PriceService) UpdatePrices() {
 
-	if !MarketclosingWindow() {
+	if !MarketclosingWindow() { // Check if the market is currently open, and if so, skip the price update
 		fmt.Println("Market open, skipping price update")
 		return
 	}
@@ -34,7 +34,7 @@ func (s *PriceService) UpdatePrices() {
 		fmt.Println("Error fetching stocks:", err)
 		return
 	}
-	today := time.Now().Format("2006-01-02")
+	today := time.Now().Format("2006-01-02") // Get the current date in YYYY-MM-DD format for price update checks
 
 	for _, stock := range stocks {
 
@@ -49,7 +49,7 @@ func (s *PriceService) UpdatePrices() {
 			continue
 		}
 
-		url := fmt.Sprintf(
+		url := fmt.Sprintf( // Fetch the latest stock price data from the Alpha Vantage API for the given stock symbol
 			"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=%s&apikey=YOUR_API_KEY",
 			stock.Symbol,
 		)
@@ -82,7 +82,7 @@ func (s *PriceService) UpdatePrices() {
 		var latestDate time.Time
 		var latestClose float64
 
-		for dateStr, values := range data.TimeSeries {
+		for dateStr, values := range data.TimeSeries { // Iterate through the time series data and update history and current price
 
 			date, err := time.Parse("2006-01-02", dateStr)
 			if err != nil {
@@ -120,7 +120,7 @@ func (s *PriceService) UpdatePrices() {
 
 }
 
-func MarketclosingWindow() bool {
+func MarketclosingWindow() bool { // Determine if the current time is within the market closing window (weekends and after-hours)
 	now := time.Now()
 
 	loc, _ := time.LoadLocation("Asia/Kolkata")
