@@ -6,7 +6,7 @@ type APIResponse struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-func SuccessResponse(message string, data interface{}) APIResponse {
+func SuccessResponse(message string, data interface{}) APIResponse { // Helper function to create a success response
 	return APIResponse{
 		Status:  "success",
 		Message: message,
@@ -14,7 +14,7 @@ func SuccessResponse(message string, data interface{}) APIResponse {
 	}
 }
 
-func ErrorResponse(message string) APIResponse {
+func ErrorResponse(message string) APIResponse { // Helper function to create an error response
 	return APIResponse{
 		Status:  "error",
 		Message: message,

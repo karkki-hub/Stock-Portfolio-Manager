@@ -11,3 +11,8 @@ type WatchlistStock struct {
 	StockName string  `json:"stock_name"`
 	LastPrice float64 `json:"last_price"`
 }
+
+type StockPriceHistory struct {
+	Date  string  `json:"date"`
+	Price float64 `json:"price"`
+}

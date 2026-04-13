@@ -50,3 +50,23 @@ WHERE w.user_id = ?`
 	}
 	return stocks, nil
 }
+
+func (r *WatchlistRepository) GetStockHistory(stockid uint) ([]models.StockPriceHistory, error) {
+	query := `SELECT price_date, closing_price FROM stock_price_history WHERE stock_id = ? ORDER BY price_date DESC`
+	rows, err := r.DB.Query(query, stockid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var history []models.StockPriceHistory
+	for rows.Next() {
+		var entry models.StockPriceHistory
+		err := rows.Scan(&entry.Date, &entry.Price)
+		if err != nil {
+			return nil, err
+		}
+		history = append(history, entry)
+	}
+	return history, nil
+}

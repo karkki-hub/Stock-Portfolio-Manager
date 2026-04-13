@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 
-	// "fmt"
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 )
 
@@ -61,4 +60,32 @@ func (r *ProfileRepository) ResetPassword(userID uint, password string) error {
 	query := `UPDATE users SET password = ?  WHERE user_id = ?`
 	_, err := r.DB.Exec(query, password, userID)
 	return err
+}
+
+func (r *ProfileRepository) GetAllUserId() ([]models.UserID, error) {
+	query := `SELECT user_id, name FROM users`
+
+	var userIDs []models.UserID
+
+	rows, err := r.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var u models.UserID
+
+		if err := rows.Scan(&u.ID, &u.Name); err != nil {
+			return nil, err
+		}
+
+		userIDs = append(userIDs, u)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return userIDs, nil
 }

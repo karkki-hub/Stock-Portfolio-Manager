@@ -24,28 +24,27 @@ func NewStockService(repo *repository.StockRepository, alphaKey string) *StockSe
 
 func (s *StockService) AddStock(symbol string, name string) error {
 
-	url := fmt.Sprintf(
-		"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=%s&apikey=%s",
+	url := fmt.Sprintf( // Fetch daily time series data for the stock from Alpha Vantage API
+		"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=%s&apikey=%s",
 		symbol,
 		s.AlphaKey,
 	)
 
-	client := http.Client{Timeout: 10 * time.Second}
+	client := http.Client{Timeout: 10 * time.Second} // Create an HTTP client with a timeout to avoid hanging requests
 	resp, err := client.Get(url)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	// Read full body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
 
-	// Rate-limit check
 	var check map[string]interface{}
-	json.Unmarshal(body, &check)
+	_ = json.Unmarshal(body, &check)
+
 	if msg, ok := check["Note"]; ok {
 		return fmt.Errorf("alphavantage rate limit: %v", msg)
 	}
@@ -53,30 +52,68 @@ func (s *StockService) AddStock(symbol string, name string) error {
 		return fmt.Errorf("alphavantage rate limit: %v", msg)
 	}
 
-	// Decode normally
-	var result map[string]map[string]string
-	err = json.Unmarshal(body, &result)
-	if err != nil {
+	type TimeSeriesResponse struct {
+		TimeSeries map[string]map[string]string `json:"Time Series (Daily)"`
+	}
+
+	var data TimeSeriesResponse
+	if err := json.Unmarshal(body, &data); err != nil {
 		return err
 	}
 
-	quote, ok := result["Global Quote"]
-	if !ok || len(quote) == 0 {
-		return fmt.Errorf("no quote data for %s", symbol)
-	}
-
-	price, err := strconv.ParseFloat(quote["05. price"], 64)
-	if err != nil {
-		return fmt.Errorf("invalid price format")
+	if data.TimeSeries == nil {
+		return fmt.Errorf("no time series data for %s", symbol)
 	}
 
 	stock := &models.Stock{
 		Symbol:    symbol,
 		StockName: name,
-		LastPrice: price,
+		LastPrice: 0,
 	}
 
 	err = s.Repo.Save(stock)
+	if err != nil {
+		return err
+	}
+
+	savedStock, err := s.Repo.GetBySymbol(symbol)
+	if err != nil {
+		return err
+	}
+	stockID := savedStock.ID
+
+	var latestDate time.Time
+	var latestPrice float64
+
+	for dateStr, values := range data.TimeSeries { // Iterate through the time series data and update history and current price
+
+		date, err := time.Parse("2006-01-02", dateStr)
+		if err != nil {
+			continue
+		}
+
+		price, err := strconv.ParseFloat(values["4. close"], 64)
+		if err != nil {
+			continue
+		}
+
+		err = s.Repo.UpdateHistory(stockID, price, date)
+		if err != nil {
+			fmt.Println("History insert error:", err)
+			continue
+		}
+
+		if date.After(latestDate) {
+			latestDate = date
+			latestPrice = price
+		}
+	}
+
+	if latestPrice == 0 {
+		return fmt.Errorf("failed to extract latest price")
+	}
+
+	err = s.Repo.UpdateStockPrice(stockID, latestPrice)
 	if err != nil {
 		return err
 	}
@@ -87,13 +124,13 @@ func (s *StockService) AddStock(symbol string, name string) error {
 func (s *StockService) GetStockName(keyword string) ([]models.StockDetails, error) {
 	time.Sleep(1 * time.Second)
 
-	url := fmt.Sprintf(
+	url := fmt.Sprintf( // Search for stocks matching the keyword using Alpha Vantage API
 		"https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=%s&apikey=%s",
 		keyword,
 		s.AlphaKey,
 	)
 
-	client := http.Client{
+	client := http.Client{ // Create an HTTP client with a timeout to avoid hanging requests
 		Timeout: 10 * time.Second,
 	}
 
@@ -143,7 +180,7 @@ func (s *StockService) GetStockName(keyword string) ([]models.StockDetails, erro
 }
 
 func (s *StockService) SearchStocksByKeyword(keyword string) ([]models.StockDetails, error) {
-	if len(keyword) < 3 {
+	if len(keyword) < 3 { // Validate that the keyword is at least 3 characters long to avoid unnecessary API calls
 		return nil, fmt.Errorf("keyword must be at least 3 characters")
 	}
 	stock, err := s.Repo.SearchByKeyword(keyword)

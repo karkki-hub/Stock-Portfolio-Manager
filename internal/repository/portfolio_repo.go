@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
-	"karkki-hub/Stock-Portfolio-Manager/internal/utilities"
+	"karkki-hub/Stock-Portfolio-Manager/pkg/utilities"
 )
 
 type PortfolioRepository struct {
@@ -101,6 +101,8 @@ WHERE p.user_id = ?`
 		if err != nil {
 			return nil, err
 		}
+
+		// Calculate current value and profit/loss for each stock
 
 		p.CurrentValue = utilities.RoundUp(p.CurrentPrice * p.Quantity)
 		p.ProfitLoss = utilities.RoundUp(p.CurrentValue - p.TotalInvest)

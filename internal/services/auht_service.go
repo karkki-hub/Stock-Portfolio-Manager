@@ -7,7 +7,7 @@ import (
 
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/repository"
-	utilities "karkki-hub/Stock-Portfolio-Manager/internal/utilities"
+	utilities "karkki-hub/Stock-Portfolio-Manager/pkg/utilities"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -53,7 +53,7 @@ func (s *AuthService) Register(name, email, phone, address, password, apiKey str
 	return user, nil
 }
 
-func (s *AuthService) Login(email, password string) (string, error) {
+func (s *AuthService) Login(email, password string) (string, error) { // Authenticate a user and return a JWT token
 
 	user, err := s.UserRepo.GetByEmail(email)
 	if err != nil {
@@ -61,7 +61,7 @@ func (s *AuthService) Login(email, password string) (string, error) {
 		return "", errors.New("invalid credentials")
 	}
 
-	err = utilities.CheckPasswordHash(password, user.Password)
+	err = utilities.CheckPasswordHash(password, user.Password) // Compare the provided password with the stored hash
 	if err != nil {
 		fmt.Println("Login failed: password mismatch for email:", email)
 		return "", errors.New("invalid credentials")
@@ -72,10 +72,10 @@ func (s *AuthService) Login(email, password string) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": user.ID,
 		"email":   user.Email,
-		"exp":     time.Now().Add(1 * time.Hour).Unix(),
+		"exp":     time.Now().Add(6 * time.Hour).Unix(),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims) //	Create a new JWT token with the user claims and sign it with the secret key
 
 	return token.SignedString(s.JWTSecret)
 }

@@ -19,10 +19,16 @@
 <table border="2">
     <thead>
         <tr>
-            <th>Symbol</th>
-            <th>Stock Name</th>
-            <th>Price</th>
-            <th>Action</th>
+            <th onclick="sortWatchlist('symbol')">
+  Symbol <span id="arrow-symbol"></span>
+</th>
+<th onclick="sortWatchlist('stock_name')">
+  Name <span id="arrow-stock_name"></span>
+</th>
+<th onclick="sortWatchlist('last_price')">
+  Price <span id="arrow-last_price"></span>
+</th>
+<th>Actions</th>
         </tr>
     </thead>
     <tbody id="watchlist"></tbody>
@@ -32,8 +38,10 @@
 <button onclick="goPortfolio()">View Portfolio</button>
 <button onclick="goProfile()">View Profile</button>
 <button onclick="logout()">Logout</button>
+<button onclick="downloaduserReport()">Download Report</button>
 
 <script src="script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>loadWatchlist()</script>
 
 <div id="trademodal" style="display: none; position: fixed; top: 30%; left: 40%; background: white; border: 1px solid black; padding: 20px;">
@@ -42,4 +50,10 @@
     <input id="trade-price" placeholder="Price">
     <button onclick="submitTrade()">Submit</button>
     <button onclick="closeTrade()">Cancel</button>
+</div>
+
+<div id="chartModal" style="display: none; position: fixed; top: 10%; left: 20%; background: white; border: 1px solid black; padding: 20px;">
+    <h3 id="chartTitle"></h3>
+    <canvas id="stockChart" width="400" height="200"></canvas>
+    <button onclick="closeChart()">Close</button>
 </div>

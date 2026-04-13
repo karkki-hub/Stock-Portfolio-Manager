@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reports</title>
+</head>
+<body>
+
+<h2>My Reports</h2>
+
+<button onclick="goWatchlist()">Back to Watchlist</button>
+
+<!-- Date filter UI -->
+<div>
+    <label>From: <input type="date" id="date-from"></label>
+    <label>To: <input type="date" id="date-to"></label>
+    <button id="filter-btn">Filter</button>
+    <button id="reset-btn">Reset</button>
+</div>
+
+<!-- Reports table -->
+<table border="1">
+    <tbody id="reportsTable"></tbody>
+</table>
+
+<!-- Scripts at the end -->
+<script src="script.js"></script>
+</body>
+</html>

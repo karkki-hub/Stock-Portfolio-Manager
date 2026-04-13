@@ -56,7 +56,7 @@ func (s *TransactionService) Sell(userID uint, Symbol string, quantity float64, 
 		return err
 	}
 
-	if holding < int(quantity) {
+	if holding < int(quantity) { // Check if the user has enough holdings to sell the requested quantity
 		return errors.New("insufficient holdings")
 	}
 

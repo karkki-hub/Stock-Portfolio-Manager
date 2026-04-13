@@ -15,12 +15,12 @@ func RegisterRoutes(e *echo.Echo,
 	txHandler *handlers.TransactionHandler,
 	portfolioHandler *handlers.PortfolioHandler,
 	profileHandler *handlers.ProfileHandler,
+	reportHandler *handlers.ReportHandler,
 ) {
 
 	e.POST("/register", authHandler.Register)
 	e.POST("/login", authHandler.Login)
 
-	// Protected routes
 	api := e.Group("/api")
 	api.Use(middleware.JWTMiddleware(jwtSecret))
 
@@ -33,6 +33,7 @@ func RegisterRoutes(e *echo.Echo,
 	api.GET("/watchlist", watchHandler.Get)
 	api.POST("/watchlist", watchHandler.Add)
 	api.DELETE("/watchlist/:symbol", watchHandler.Remove)
+	api.GET("/watchlist/history/:symbol", watchHandler.GetStockHistory)
 
 	api.POST("/transactions/buy", txHandler.Buy)
 	api.POST("/transactions/sell", txHandler.Sell)
@@ -42,4 +43,9 @@ func RegisterRoutes(e *echo.Echo,
 	api.GET("/profile", profileHandler.Get)
 	api.PUT("/profile/update", profileHandler.Update)
 	api.POST("/profile/reset_pswd", profileHandler.Reset)
+
+	api.GET("/report", reportHandler.ExportReportCSV)
+
+	api.GET("/reports", reportHandler.ListReports)
+	api.GET("/reports/:filename", reportHandler.DownloadReport)
 }

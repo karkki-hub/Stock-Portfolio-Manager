@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	// "karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
 
@@ -33,6 +32,14 @@ func (h *TransactionHandler) Buy(c echo.Context) error {
 	}
 
 	userId := getUserID(c)
+
+	if req.Quantity <= 0 || req.Price <= 0 { // Validate quantity and price must be greater than zero
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse("quantity and price must be greater than zero"))
+	}
+
+	if req.Quantity > 500 { // Validate quantity must not exceed 500
+		return c.JSON(http.StatusBadRequest, models.ErrorResponse("quantity cannot exceed 500"))
+	}
 
 	err := h.Service.Buy(userId, req.Symbol, req.Quantity, req.Price)
 	if err != nil {

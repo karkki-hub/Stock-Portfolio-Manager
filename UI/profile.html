@@ -3,22 +3,46 @@
 <head>
     <title>User Profile</title>
 </head>
-<script src="script.js"></script>
+
 <body onload="loadProfile()">
     <h2>User Profile</h2>
 
         Name:<br>
         <input type="text" id="profilename"><br><br>
         Email:<br>
-        <input type="text" id="profilemail"><br><br>
+        <input type="text" id="profilemail" disabled><br><br>
         Phone:<br>
         <input type="text" id="profilePhone"><br><br>
         Address:<br>
         <input type="text" id="profileAddress"><br><br>
 
         <p id="profileMsg"></p>
+
+        <button onclick="openReset()">🔐 Reset Password</button>
         
         <button onclick="updateProfile()">Update</button>
+        <button onclick="window.location='watchlist.html'">Back to Watchlist</button>
         <button onclick="logout()">Logout</button>
+        <script src="script.js"></script>
 </body>
 </html>
+
+<div id="resetModal" style="display:none; position:fixed; top:20%; left:35%; width:30%; background:white; padding:20px; border:1px solid black;">
+
+    <h3>Reset Password</h3>
+
+    Old Password:<br>
+    <input type="password" id="oldPass"><br><br>
+
+    New Password:<br>
+    <input type="password" id="newPass"><br><br>
+
+    Re-enter Password:<br>
+    <input type="password" id="rePass"><br><br>
+
+    <p id="resetMsg"></p>
+
+    <button onclick="submitReset()">Submit</button>
+    <button onclick="closeReset()">Cancel</button>
+
+</div>

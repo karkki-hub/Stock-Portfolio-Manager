@@ -3,7 +3,7 @@ package services
 import (
 	"karkki-hub/Stock-Portfolio-Manager/internal/models"
 	"karkki-hub/Stock-Portfolio-Manager/internal/repository"
-	utilities "karkki-hub/Stock-Portfolio-Manager/internal/utilities"
+	utilities "karkki-hub/Stock-Portfolio-Manager/pkg/utilities"
 )
 
 type ProfileService struct {
@@ -23,10 +23,14 @@ func (s *ProfileService) ChangeProfile(userID uint, phone string, name string, a
 }
 
 func (s *ProfileService) ChangePassword(userID uint, password string) error {
-	hashedPassword, err := utilities.HashPassword(password)
+	hashedPassword, err := utilities.HashPassword(password) // Hash the new password before storing it in the database
 	if err != nil {
 		return err
 	}
 
 	return s.Repo.ResetPassword(userID, hashedPassword)
+}
+
+func (s *ProfileService) GetAllUserIDs() ([]models.UserID, error) {
+	return s.Repo.GetAllUserId()
 }

@@ -3,8 +3,8 @@ package models
 import "time"
 
 type Portfolio struct {
-	UserID       uint      `json:"-"`
-	StockID      uint      `json:"-"`
+	UserID       uint      `json:"-"` // Exclude UserID from JSON responses
+	StockID      uint      `json:"-"` // Exclude StockID from JSON responses
 	Symbol       string    `json:"symbol"`
 	Quantity     float64   `json:"quantity"`
 	AvgBuyPrice  float64   `json:"avg_buy_price"`

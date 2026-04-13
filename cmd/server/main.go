@@ -7,6 +7,7 @@ import (
 	"karkki-hub/Stock-Portfolio-Manager/internal/repository"
 	"karkki-hub/Stock-Portfolio-Manager/internal/routes"
 	"karkki-hub/Stock-Portfolio-Manager/internal/services"
+	"karkki-hub/Stock-Portfolio-Manager/pkg/utilities"
 
 	"github.com/labstack/echo/v4"
 )
@@ -21,6 +22,10 @@ func main() {
 
 	db := database.NewMySQL(cfg)
 
+	cronrepo := repository.NewCronRepository(db)
+
+	cronservice := services.NewCronService(cronrepo)
+
 	userRepo := repository.NewUserRepository(db)
 
 	authService := services.NewAuthService(userRepo, cfg.JWTSecret)
@@ -30,6 +35,16 @@ func main() {
 	stockRepo := repository.NewStockRepository(db)
 
 	stockService := services.NewStockService(stockRepo, cfg.AlphaKey)
+
+	priceService := services.NewPriceService(stockRepo, cronservice)
+
+	cronManager := utilities.NewCronManager()
+
+	// Update prices every 30 minutes
+
+	cronManager.AddJob("*/30 * * * *", func() {
+		priceService.UpdatePrices()
+	})
 
 	stockHandler := handlers.NewStockHandler(stockService)
 
@@ -57,7 +72,21 @@ func main() {
 
 	profileHandler := handlers.NewProfileHandler(profileService)
 
-	routes.RegisterRoutes(e, authHandler, cfg.JWTSecret, stockHandler, watchHandler, txHandler, portfolioHandler, profileHandler)
+	reportRepo := repository.NewReportRepository(db)
+
+	reportService := services.NewReportService(reportRepo)
+
+	reportHandler := handlers.NewReportHandler(reportService, profileService, cronservice)
+
+	// Schedule daily report generation at midnight
+
+	cronManager.AddJob("00 00 * * *", func() {
+		reportHandler.DailyReport()
+	})
+
+	cronManager.Start()
+
+	routes.RegisterRoutes(e, authHandler, cfg.JWTSecret, stockHandler, watchHandler, txHandler, portfolioHandler, profileHandler, reportHandler)
 
 	e.Logger.Fatal(e.Start(":" + cfg.AppPort))
 }
